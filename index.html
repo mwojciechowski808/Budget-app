@@ -1,0 +1,1863 @@
+<!-- Język ustawiany dynamicznie -->
+<html lang="pl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Tytuł ustawiany dynamicznie -->
+    <title>Miesięczny Panel Budżetu</title>
+    <!-- 1. Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Load Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <!-- 3. NEW: Load Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
+
+    <!-- 4. Load Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* (Style pozostają takie same jak w poprzedniej wersji: scrollbar, progress-bar, modals, etc.) */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        .progress-bar { background-color: #374151; }
+        .progress { height: 100%; border-radius: 0.25rem; transition: width 0.3s ease-in-out; }
+        .budget-value { cursor: pointer; text-decoration: underline; text-decoration-style: dotted; text-decoration-color: #9ca3af; }
+        .budget-value:hover { text-decoration-color: #f9fafb; color: #f9fafb; }
+        .delete-trans-btn { font-size: 1.5rem; font-weight: bold; line-height: 1; padding: 0.25rem 0.5rem; border-radius: 0.375rem; transition: background-color 0.2s; }
+        .delete-trans-btn:hover { background-color: #374151; }
+        .modal-overlay { transition: opacity 0.3s ease; }
+        .modal-content { transition: transform 0.3s ease; }
+        .settings-btn { background-color: #374151; border: 1px solid #4b5563; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer; font-size: 1rem; line-height: 1; transition: background-color 0.2s; }
+        .settings-btn:hover { background-color: #4b5563; }
+        .settings-btn.active { background-color: #14b8a6; border-color: #14b8a6; }
+
+        /* Floating Action Button (FAB) */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 4rem; /* 64px */
+            height: 4rem; /* 64px */
+            border-radius: 9999px; /* rounded-full */
+            background-color: #14b8a6; /* brand-teal */
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: transform 0.2s ease-out;
+            z-index: 40;
+        }
+        .fab:hover {
+            transform: scale(1.05);
+            background-color: #0d9488; /* teal-700 */
+        }
+        .fab svg {
+            width: 2rem; /* 32px */
+            height: 2rem; /* 32px */
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { 'brand-pink': '#ec4899', 'brand-purple': '#a855f7', 'brand-teal': '#14b8a6' }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-gray-200 font-sans p-4 sm:p-8 antialiased">
+
+    <!-- 
+      ============================================
+      EKRAN LOGOWANIA (Bez zmian)
+      ============================================
+    -->
+    <div id="auth-container" class="fixed inset-0 bg-gray-900 z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-md">
+            <h2 class="text-3xl font-bold text-white text-center mb-6" data-i18n-key="welcome">Witaj w Budżecie Online</h2>
+            
+            <div class="bg-gray-800 p-8 rounded-2xl shadow-lg">
+                <!-- Login Form -->
+                <form id="login-form" class="space-y-4 mb-4">
+                    <h3 class="text-xl font-semibold text-white" data-i18n-key="login">Zaloguj się</h3>
+                    <div>
+                        <label for="login-email" class="block text-sm font-medium text-gray-300" data-i18n-key="email">Email</label>
+                        <input type="email" id="login-email" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
+                    </div>
+                    <div>
+                        <label for="login-password" class="block text-sm font-medium text-gray-300" data-i18n-key="password">Hasło</label>
+                        <input type="password" id="login-password" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
+                    </div>
+                    <button type="submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="loginBtn">
+                        Zaloguj się
+                    </button>
+                </form>
+                
+                <!-- Register Form -->
+                <form id="register-form" class="space-y-4">
+                    <h3 class="text-xl font-semibold text-white" data-i18n-key="register">Lub utwórz nowe konto</h3>
+                    <div>
+                        <label for="register-name" class="block text-sm font-medium text-gray-300" data-i18n-key="name">Twoje imię</label>
+                        <input type="text" id="register-name" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" placeholder="np. Michał">
+                    </div>
+                    <div>
+                        <label for="register-email" class="block text-sm font-medium text-gray-300" data-i18n-key="email">Email</label>
+                        <input type="email" id="register-email" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
+                    </div>
+                    <div>
+                        <label for="register-password" class="block text-sm font-medium text-gray-300" data-i18n-key="password">Hasło</label>
+                        <input type="password" id="register-password" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
+                    </div>
+                    <button type="submit" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="registerBtn">
+                        Zarejestruj się
+                    </button>
+                </form>
+                
+                <p id="auth-error" class="text-red-400 text-sm mt-4 text-center hidden"></p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 
+      ============================================
+      GŁÓWNA APLIKACJA (Ukryta na starcie)
+      ============================================
+    -->
+    <div id="app-container" class="max-w-7xl mx-auto hidden">
+        <!-- HEADER -->
+        <header class="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <!-- Tytuł zastąpiony wyborem budżetu -->
+            <div class="flex items-center gap-2">
+                <select id="budget-select" class="bg-gray-900 text-white text-2xl sm:text-3xl font-bold border-0 focus:ring-0 p-0 pr-8">
+                    <!-- Budżety ładowane z JS -->
+                </select>
+            </div>
+            
+            <div class="flex flex-wrap justify-center sm:justify-end items-center gap-2">
+                <!-- Przełączniki Języka i Waluty -->
+                <div class="flex items-center space-x-1 bg-gray-800 p-1 rounded-lg">
+                    <button id="lang-pl" class="settings-btn" title="Zmień język na polski" data-i18n-key="langPlTooltip">🇵🇱</button>
+                    <button id="lang-en" class="settings-btn" title="Switch language to English" data-i18n-key="langEnTooltip">🇬🇧</button>
+                </div>
+                 <div class="flex items-center space-x-1 bg-gray-800 p-1 rounded-lg">
+                    <button id="curr-pln" class="settings-btn" title="Zmień walutę na PLN" data-i18n-key="currPlnTooltip">PLN</button>
+                    <button id="curr-eur" class="settings-btn" title="Change currency to EUR" data-i18n-key="currEurTooltip">EUR</button>
+                </div>
+
+                <!-- Filtry -->
+                <select id="filter-user-select" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-brand-teal focus:border-brand-teal p-2.5"></select>
+                <select id="month-select" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-brand-teal focus:border-brand-teal p-2.5"></select>
+                <select id="year-select" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-brand-teal focus:border-brand-teal p-2.5"></select>
+                
+                <!-- Przycisk Wyloguj -->
+                <button id="logout-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2.5 px-4 rounded-lg shadow transition duration-200" data-i18n-key="logout">
+                    Wyloguj
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN DASHBOARD GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- === LEWA KOLUMNA (Teraz główna) === -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- KARTY PODSUMOWANIA (Bez zmian) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="leftToSpend">Pozostało do wydania</h2>
+                        <p id="summary-left-to-spend" class="text-4xl font-bold text-white">0,00 zł</p>
+                        <p class="text-sm text-gray-400 mt-2">
+                            <span id="summary-spent-so-far">0,00 zł</span> <span data-i18n-key="spentOf">wydano z</span> 
+                            <span id="summary-total-budgeted">0,00 zł</span>
+                        </p>
+                    </div>
+                    <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="totalIncome">Całkowity Przychód</h2>
+                        <p id="summary-income-actual" class="text-4xl font-bold text-brand-teal">0,00 zł</p>
+                        <p class="text-sm text-gray-400 mt-2">
+                            <span data-i18n-key="budgeted">Zabudżetowano</span>: <span id="summary-income-budgeted">0,00 zł</span>
+                        </p>
+                    </div>
+                    <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="totalExpenses">Całkowite Wydatki</h2>
+                        <p id="summary-expenses-actual" class="text-4xl font-bold text-brand-pink">0,00 zł</p>
+                        <p class="text-sm text-gray-400 mt-2">
+                            <span data-i18n-key="budgeted">Zabudżetowano</span>: <span id="summary-expenses-budgeted">0,00 zł</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- WYKRESY (Bez zmian) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-800 p-6 rounded-2xl shadow-lg h-[400px] flex flex-col">
+                        <h2 class="text-lg font-semibold text-white mb-4" data-i18n-key="spendingAnalysis">Analiza Wydatków</h2>
+                        <div class="relative flex-grow h-full">
+                            <canvas id="spendingDoughnutChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-gray-800 p-6 rounded-2xl shadow-lg h-[400px] flex flex-col">
+                        <h2 class="text-lg font-semibold text-white mb-4" data-i18n-key="budgetVsSpent">Budżet vs. Wydatki (Wydatki)</h2>
+                        <div class="relative flex-grow h-full">
+                            <canvas id="budgetBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KATEGORIE BUDŻETOWE -->
+                <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                        <h2 class="text-lg font-semibold text-white" data-i18n-key="budgetCategories">Kategorie Budżetowe</h2>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            <!-- NEW: Zmieniony przycisk na "Zarządzaj Budżetem" -->
+                            <button id="manage-budget-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="manageBudget">
+                                Zarządzaj Budżetem
+                            </button>
+                            <button id="yearly-summary-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="yearlySummary">
+                                Podsumowanie Roczne
+                            </button>
+                            <button id="manage-categories-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="manageCategories">
+                                Zarządzaj Kategoriami
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-x-8 gap-y-6">
+                        <div id="income-table-container"></div>
+                        <div id="expenses-table-container"></div>
+                        <div id="bills-table-container"></div>
+                        <div id="debt-table-container"></div>
+                        <div id="savings-table-container"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- === PRAWA KOLUMNA (Teraz tylko transakcje) === -->
+            <div class="lg:col-span-1 space-y-6">
+                
+                <!-- Lista Ostatnich Transakcji -->
+                <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
+                    <h2 class="text-lg font-semibold text-white mb-4" data-i18n-key="recentTransactions">Ostatnie Transakcje</h2>
+                    <div id="transaction-list-container" class="space-y-4 max-h-[1200px] lg:max-h-[1700px] overflow-y-auto pr-2">
+                        <p id="no-transactions" class="text-gray-400" data-i18n-key="noTransactions">Nie dodano jeszcze żadnych transakcji.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 
+      ============================================
+      PŁYWAJĄCY PRZYCISK AKCJI (FAB)
+      ============================================
+    -->
+    <button id="fab-add-transaction" class="fab hidden" title="Dodaj Transakcję">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+    </button>
+
+    <!-- 
+      ============================================
+      MODALE
+      ============================================
+    -->
+
+    <!-- Modal Dodawania Transakcji (Bez zmian) -->
+    <div id="transaction-modal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="modal-content bg-gray-800 w-full max-w-lg rounded-2xl shadow-lg p-6 max-h-[90vh] flex flex-col transform scale-95 opacity-0">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-white" data-i18n-key="addTransaction">Dodaj Transakcję</h2>
+                <button id="close-transaction-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            
+            <form id="transaction-form" class="space-y-4 overflow-y-auto pr-2">
+                <!-- Message box for alerts -->
+                <div id="message-box" class="p-4 text-sm rounded-lg hidden"></div>
+
+                <div>
+                    <label for="trans-description" class="block text-sm font-medium text-gray-300" data-i18n-key="description">Opis</label>
+                    <input type="text" id="trans-description" name="trans-description" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" data-i18n-key="descriptionPlaceholder" placeholder="np. Zakupy spożywcze">
+                </div>
+                <div>
+                    <label for="trans-amount" class="block text-sm font-medium text-gray-300" data-i18n-key="amount">Kwota</label>
+                    <input type="number" id="trans-amount" name="trans-amount" step="0.01" min="0" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" placeholder="0.00">
+                </div>
+                <div>
+                    <label for="trans-category" class="block text-sm font-medium text-gray-300" data-i18n-key="category">Kategoria</label>
+                    <select id="trans-category" name="trans-category" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+                <!-- Pole Użytkownika Usunięte - będzie automatycznie ustawiane na zalogowanego użytkownika -->
+                <div>
+                    <label for="trans-date" class="block text-sm font-medium text-gray-300" data-i18n-key="date">Data</label>
+                    <input type="date" id="trans-date" name="trans-date" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
+                </div>
+                <button type="submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="addTransactionBtn">
+                    Dodaj Transakcję
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Zarządzania Kategoriami (Bez zmian) -->
+    <div id="category-manager-modal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="modal-content bg-gray-800 w-full max-w-lg rounded-2xl shadow-lg p-6 max-h-[90vh] flex flex-col transform scale-95 opacity-0">
+            <!-- (Treść bez zmian) -->
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-white" data-i18n-key="manageCategoriesTitle">Zarządzaj Kategoriami</h2>
+                <button id="close-category-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <form id="category-form" class="space-y-4 p-4 border border-gray-700 rounded-lg mb-4">
+                 <input type="hidden" id="cat-form-id">
+                <div>
+                    <label for="cat-form-name" class="block text-sm font-medium text-gray-300" data-i18n-key="name">Nazwa</label>
+                    <input type="text" id="cat-form-name" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" data-i18n-key="newCategoryPlaceholder" placeholder="np. Nowa Kategoria">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="cat-form-budgeted" class="block text-sm font-medium text-gray-300" data-i18n-key="defaultBudget">Domyślny Budżet</label>
+                        <input type="number" id="cat-form-budgeted" step="0.01" min="0" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label for="cat-form-type" class="block text-sm font-medium text-gray-300" data-i18n-key="type">Typ</label>
+                        <select id="cat-form-type" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal"></select>
+                    </div>
+                </div>
+                <button type="submit" id="cat-form-submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="addCategoryBtn">
+                    Dodaj Kategorię
+                </button>
+                <button type="button" id="cat-form-cancel" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200 hidden" data-i18n-key="cancelEditBtn">
+                    Anuluj Edycję
+                </button>
+            </form>
+            <div id="category-manager-list" class="space-y-2 overflow-y-auto pr-2"></div>
+        </div>
+    </div>
+
+    <!-- Modal Podsumowania Rocznego (Bez zmian) -->
+    <div id="yearly-summary-modal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="modal-content bg-gray-800 w-full max-w-3xl rounded-2xl shadow-lg p-6 max-h-[90vh] flex flex-col transform scale-95 opacity-0">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                <h2 class="text-xl font-semibold text-white" id="yearly-summary-title" data-i18n-key="yearlySummaryTitle">Podsumowanie Roczne</h2>
+                <button id="export-csv-btn" class="text-sm bg-brand-teal hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="exportCSV">
+                    Eksportuj CSV
+                </button>
+                <button id="close-yearly-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <div class="overflow-y-auto pr-2">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="p-3 text-sm font-semibold text-white" data-i18n-key="month">Miesiąc</th>
+                            <th class="p-3 text-sm font-semibold text-white" data-i18n-key="totalIncome">Przychody</th>
+                            <th class="p-3 text-sm font-semibold text-white" data-i18n-key="totalExpenses">Wydatki</th>
+                            <th class="p-3 text-sm font-semibold text-white" data-i18n-key="savings">Oszczędności</th>
+                        </tr>
+                    </thead>
+                    <tbody id="yearly-summary-table-body" class="divide-y divide-gray-700"></tbody>
+                    <tfoot class="bg-gray-700 font-bold">
+                        <tr id="yearly-summary-table-footer"></tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- NEW: Modal Zarządzania Budżetem (Zastępuje Zarządzanie Użytkownikami) -->
+    <div id="budget-manager-modal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="modal-content bg-gray-800 w-full max-w-lg rounded-2xl shadow-lg p-6 max-h-[90vh] flex flex-col transform scale-95 opacity-0">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-white" data-i18n-key="manageBudgetTitle">Zarządzaj Budżetem</h2>
+                <button id="close-budget-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            
+            <!-- Formularz zmiany nazwy budżetu -->
+            <form id="budget-name-form" class="space-y-2 mb-4">
+                <label for="budget-form-name" class="block text-sm font-medium text-gray-300" data-i18n-key="budgetName">Nazwa Budżetu</label>
+                <div class="flex gap-2">
+                    <input type="text" id="budget-form-name" required class="flex-grow block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" placeholder="np. Budżet Domowy">
+                    <button type="submit" class="bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="saveBtn">Zapisz</button>
+                </div>
+            </form>
+
+            <hr class="border-gray-700 my-4">
+
+            <!-- Formularz Zapraszania Użytkowników -->
+            <h3 class="text-lg font-semibold text-white mb-2" data-i18n-key="inviteUser">Zaproś Użytkownika</h3>
+            <p class="text-sm text-gray-400 mb-2" data-i18n-key="inviteUserDesc">Zaproś kogoś do współdzielenia tego budżetu. Osoba ta musi już posiadać konto w aplikacji.</p>
+            <form id="invite-user-form" class="space-y-2 mb-4">
+                <label for="invite-email" class="block text-sm font-medium text-gray-300" data-i18n-key="email">Email użytkownika</label>
+                <div class="flex gap-2">
+                    <input type="email" id="invite-email" required class="flex-grow block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" placeholder="uzytkownik@przyklad.com">
+                    <button type="submit" class="bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="inviteBtn">Zaproś</button>
+                </div>
+                <p id="invite-message" class="text-sm mt-2 hidden"></p>
+            </form>
+
+            <hr class="border-gray-700 my-4">
+
+            <!-- Lista Użytkowników w Budżecie -->
+            <h3 class="text-lg font-semibold text-white mb-2" data-i18n-key="usersInBudget">Użytkownicy w tym budżecie</h3>
+            <div id="budget-user-list" class="space-y-2 overflow-y-auto pr-2">
+                <!-- Lista użytkowników ładowana z Firebase -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 
+      ============================================
+      FINALNA LOGIKA JAVASCRIPT (FIREBASE)
+      ============================================
+    -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // === 0. KONFIGURACJA FIREBASE ===
+            // !! WAŻNE !!
+            // Poniższy obiekt zostanie automatycznie wypełniony Twoim kluczem, gdy go podasz.
+            const firebaseConfig = {
+                apiKey: "AIzaSyALc9fMeTrLKHGrImqYumKpq0QbuUkJ0Yc",
+                authDomain: "budgeting-app-25c25.firebaseapp.com",
+                projectId: "budgeting-app-25c25",
+                storageBucket: "budgeting-app-25c25.firebasestorage.app",
+                messagingSenderId: "513641657698",
+                appId: "1:513641657698:web:eafab8afdb3db3fec0683b",
+                measurementId: "G-D6JH4LEH3R"
+            };
+            
+            // Inicjalizacja Firebase
+            let app, auth, db;
+            try {
+                app = firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                db = firebase.firestore();
+                console.log("Firebase połączony!");
+            } catch (e) {
+                console.error("Błąd inicjalizacji Firebase:", e);
+                alert("BŁĄD KRYTYCZNY: Nie udało się połączyć z Firebase. Czy wkleiłeś poprawny obiekt 'firebaseConfig'?");
+                return;
+            }
+
+            // === 1. STAN APLIKACJI (Zarządzany przez Firebase) ===
+            let currentLang = 'pl';
+            let currentCurrency = 'PLN';
+            let currentFilterUserId = null; // null = Wszyscy
+            let currentMonthKey = ''; // np. "10-2025"
+            let currentUser = null; // Obiekt użytkownika z Firebase Auth
+            
+            // NEW: Zarządzanie budżetami
+            let currentBudgetId = null; // ID aktywnego budżetu
+            let userBudgets = []; // Lista budżetów, do których należy użytkownik
+            let localUsers = {}; // Lokalna kopia profili użytkowników (UID -> Name)
+            let localBudgetMembers = []; // Lista UID członków *aktywnego* budżetu
+
+            // Lokalne kopie danych z Firebase (dla szybkiego renderowania)
+            let localTransactions = [];
+            let localCategories = [];
+            let localMonthlyBudgets = {}; // np. { "10-2025": { cat1: 500, cat2: 200 } }
+
+            // Nasłuchiwacze Firebase (do późniejszego rozłączenia)
+            let unsubscribeAuth = () => {};
+            let unsubscribeBudgetsList = () => {};
+            let unsubscribeActiveBudget = () => {};
+
+            // Uchwyty do DOM (globalne)
+            const authContainer = document.getElementById('auth-container');
+            const appContainer = document.getElementById('app-container');
+            const fab = document.getElementById('fab-add-transaction');
+            const containerIds = ['income-table-container', 'expenses-table-container', 'bills-table-container', 'debt-table-container', 'savings-table-container'];
+            const budgetSelect = document.getElementById('budget-select');
+
+            // Mapy wykresów (dla łatwiejszego niszczenia)
+            let spendingDoughnutChart, budgetBarChart;
+            
+            // Domyślne kategorie dla nowych budżetów
+            const defaultCategories = [
+                { name: 'Wypłata', type: 'Income', budgeted: 4500 },
+                { name: 'Freelance', type: 'Income', budgeted: 300 },
+                { name: 'Zakupy spożywcze', type: 'Expense', budgeted: 600 },
+                { name: 'Restauracje', type: 'Expense', budgeted: 250 },
+                { name: 'Paliwo', type: 'Expense', budgeted: 150 },
+                { name: 'Rozrywka', type: 'Expense', budgeted: 200 },
+                { name: 'Zakupy', type: 'Expense', budgeted: 150 },
+                { name: 'Czynsz/Kredyt', type: 'Bill', budgeted: 1800 },
+                { name: 'Media', type: 'Bill', budgeted: 200 },
+                { name: 'Internet', type: 'Bill', budgeted: 60 },
+                { name: 'Telefon', type: 'Bill', budgeted: 80 },
+                { name: 'Ubezp. samochodu', type: 'Bill', budgeted: 120 },
+                { name: 'Kredyt studencki', type: 'Debt', budgeted: 150 },
+                { name: 'Karta kredytowa', type: 'Debt', budgeted: 100 },
+                { name: 'Fundusz awaryjny', type: 'Savings', budgeted: 300 },
+                { name: 'Fundusz wakacyjny', type: 'Savings', budgeted: 100 },
+            ];
+            
+            // Słownik Tłumaczeń (z nowymi kluczami)
+            const translations = {
+                pl: {
+                    welcome: "Witaj w Budżecie Online",
+                    login: "Zaloguj się",
+                    register: "Lub utwórz nowe konto",
+                    email: "Email",
+                    password: "Hasło",
+                    name: "Twoje imię",
+                    loginBtn: "Zaloguj się",
+                    registerBtn: "Zarejestruj się",
+                    logout: "Wyloguj",
+                    authErrorLogin: "Logowanie nie powiodło się. Sprawdź email i hasło.",
+                    authErrorRegister: "Rejestracja nie powiodła się. Hasło musi mieć min. 6 znaków.",
+                    exportCSV: "Eksportuj CSV",
+                    exportSummary: "Podsumowanie Roczne CSV",
+                    exportTransactions: "Transakcje (Roczne) CSV",
+                    defaultBudget: "Domyślny Budżet",
+                    dashboardTitle: 'Miesięczny Panel Budżetu',
+                    leftToSpend: 'Pozostało do wydania',
+                    totalIncome: 'Całkowity Przychód',
+                    totalExpenses: 'Całkowite Wydatki',
+                    spendingAnalysis: 'Analiza Wydatków',
+                    budgetVsSpent: 'Budżet vs. Wydatki (Wydatki)',
+                    budgetCategories: 'Kategorie Budżetowe',
+                    addTransaction: 'Dodaj Transakcję',
+                    recentTransactions: 'Ostatnie Transakcje',
+                    manageBudget: 'Zarządzaj Budżetem',
+                    yearlySummary: 'Podsumowanie Roczne',
+                    manageCategories: 'Zarządzaj Kategoriami',
+                    addTransactionBtn: 'Dodaj Transakcję',
+                    description: 'Opis',
+                    descriptionPlaceholder: 'np. Zakupy spożywcze',
+                    amount: 'Kwota',
+                    category: 'Kategoria',
+                    selectCategory: 'Wybierz kategorię...',
+                    date: 'Data',
+                    noTransactions: 'Nie dodano jeszcze żadnych transakcji.',
+                    spentOf: 'wydano z',
+                    budgeted: 'Zabudżetowano',
+                    manageCategoriesTitle: 'Zarządzaj Kategoriami',
+                    manageBudgetTitle: 'Zarządzaj Budżetem',
+                    newCategoryPlaceholder: 'np. Nowa Kategoria',
+                    addCategoryBtn: 'Dodaj Kategorię',
+                    cancelEditBtn: 'Anuluj Edycję',
+                    saveChangesBtn: 'Zapisz Zmiany',
+                    edit: 'Edytuj',
+                    delete: 'Usuń',
+                    yearlySummaryTitle: 'Podsumowanie Roczne',
+                    month: 'Miesiąc',
+                    savings: 'Oszczędności',
+                    total: 'ŁĄCZNIE',
+                    transactionAdded: 'Transakcja dodana pomyślnie!',
+                    transactionDeleted: 'Transakcja usunięta.',
+                    budgetUpdated: 'Budżet zaktualizowany.',
+                    invalidAmount: 'Wprowadzono nieprawidłową kwotę.',
+                    categoryAdded: 'Kategoria dodana.',
+                    categoryUpdated: 'Kategoria zaktualizowana.',
+                    categoryDeleted: 'Kategoria usunięta.',
+                    categoryDeleteError: 'Nie można usunąć kategorii, ponieważ ma powiązane transakcje.',
+                    fillAllFields: 'Proszę wypełnić wszystkie pola poprawnie.',
+                    invalidCategory: 'Proszę wybrać prawidłową kategorię.',
+                    newMonthSheet: 'Załadowano nowy, czysty arkusz na ten miesiąc.',
+                    confirmDelete: 'Czy na pewno chcesz usunąć tę kategorię?',
+                    confirmDeleteUser: 'Czy na pewno chcesz usunąć użytkownika "{userName}"?',
+                    chartBudgeted: 'Zabudżetowano',
+                    chartSpent: 'Wydano',
+                    catTypeIncome: 'Przychód',
+                    catTypeExpense: 'Wydatek',
+                    catTypeBill: 'Rachunek',
+                    catTypeDebt: 'Dług',
+                    catTypeSavings: 'Oszczędności',
+                    catGroupIncome: 'Przychody',
+                    catGroupExpense: 'Wydatki',
+                    catGroupBill: 'Rachunki',
+                    catGroupDebt: 'Długi',
+                    catGroupSavings: 'Oszczędności',
+                    monthNames: ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"],
+                    unknownUser: 'Nieznany',
+                    deletedCategory: 'Usunięta Kategoria',
+                    transactionSaveError: 'Błąd: Nie można zapisać danych.',
+                    clickToEditBudget: 'Kliknij, aby edytować budżet',
+                    deleteTransactionTooltip: 'Usuń transakcję',
+                    budgetFor: 'Nowy budżet dla',
+                    allUsers: 'Wszyscy Użytkownicy',
+                    langPlTooltip: 'Zmień język na polski',
+                    langEnTooltip: 'Zmień język na angielski',
+                    currPlnTooltip: 'Zmień walutę na PLN',
+                    currEurTooltip: 'Zmień walutę na EUR',
+                    personalBudget: 'Budżet Osobisty',
+                    budgetName: 'Nazwa Budżetu',
+                    saveBtn: 'Zapisz',
+                    inviteUser: 'Zaproś Użytkownika',
+                    inviteUserDesc: 'Zaproś kogoś do współdzielenia tego budżetu. Osoba ta musi już posiadać konto w aplikacji.',
+                    inviteBtn: 'Zaproś',
+                    usersInBudget: 'Użytkownicy w tym budżecie',
+                    inviteSuccess: 'Użytkownik {email} został pomyślnie zaproszony!',
+                    inviteErrorUserNotFound: 'Nie znaleziono użytkownika o adresie {email}.',
+                    inviteErrorAlreadyMember: 'Użytkownik {email} jest już członkiem tego budżetu.',
+                    inviteErrorGeneric: 'Wystąpił błąd podczas zapraszania użytkownika.',
+                    budgetNameUpdated: 'Nazwa budżetu zaktualizowana.'
+                },
+                en: {
+                    // (Analogiczne tłumaczenia dla języka angielskiego...)
+                    welcome: "Welcome to Budget Online",
+                    login: "Log In",
+                    register: "Or Create New Account",
+                    email: "Email",
+                    password: "Password",
+                    name: "Your Name",
+                    loginBtn: "Log In",
+                    registerBtn: "Register",
+                    logout: "Logout",
+                    authErrorLogin: "Login failed. Check email and password.",
+                    authErrorRegister: "Registration failed. Password must be 6+ characters.",
+                    exportCSV: "Export CSV",
+                    exportSummary: "Yearly Summary CSV",
+                    exportTransactions: "Transactions (Yearly) CSV",
+                    defaultBudget: "Default Budget",
+                    dashboardTitle: 'Monthly Budget Dashboard',
+                    leftToSpend: 'Amount Left to Spend',
+                    totalIncome: 'Total Income',
+                    totalExpenses: 'Total Expenses',
+                    spendingAnalysis: 'Spending Analysis',
+                    budgetVsSpent: 'Budget vs. Spent (Expenses)',
+                    budgetCategories: 'Budget Categories',
+                    addTransaction: 'Add Transaction',
+                    recentTransactions: 'Recent Transactions',
+                    manageBudget: 'Manage Budget',
+                    yearlySummary: 'Yearly Summary',
+                    manageCategories: 'Manage Categories',
+                    addTransactionBtn: 'Add Transaction',
+                    description: 'Description',
+                    descriptionPlaceholder: 'e.g., Groceries',
+                    amount: 'Amount',
+                    category: 'Category',
+                    selectCategory: 'Select a category...',
+                    date: 'Date',
+                    noTransactions: 'No transactions added yet.',
+                    spentOf: 'spent of',
+                    budgeted: 'Budgeted',
+                    manageCategoriesTitle: 'Manage Categories',
+                    manageBudgetTitle: 'Manage Budget',
+                    newCategoryPlaceholder: 'e.g., New Category',
+                    addCategoryBtn: 'Add Category',
+                    cancelEditBtn: 'Cancel Edit',
+                    saveChangesBtn: 'Save Changes',
+                    edit: 'Edit',
+                    delete: 'Delete',
+                    yearlySummaryTitle: 'Yearly Summary',
+                    month: 'Month',
+                    savings: 'Savings',
+                    total: 'TOTAL',
+                    transactionAdded: 'Transaction added successfully!',
+                    transactionDeleted: 'Transaction deleted.',
+                    budgetUpdated: 'Budget updated.',
+                    invalidAmount: 'Invalid amount entered.',
+                    categoryAdded: 'Category added.',
+                    categoryUpdated: 'Category updated.',
+                    categoryDeleted: 'Category deleted.',
+                    categoryDeleteError: 'Cannot delete category with associated transactions.',
+                    fillAllFields: 'Please fill out all fields correctly.',
+                    invalidCategory: 'Please select a valid category.',
+                    newMonthSheet: 'Loaded a new, clean sheet for this month.',
+                    confirmDelete: 'Are you sure you want to delete this category?',
+                    confirmDeleteUser: 'Are you sure you want to delete user "{userName}"?',
+                    chartBudgeted: 'Budgeted',
+                    chartSpent: 'Spent',
+                    catTypeIncome: 'Income',
+                    catTypeExpense: 'Expense',
+                    catTypeBill: 'Bill',
+                    catTypeDebt: 'Debt',
+                    catTypeSavings: 'Savings',
+                    catGroupIncome: 'Income',
+                    catGroupExpense: 'Expenses',
+                    catGroupBill: 'Bills',
+                    catGroupDebt: 'Debt',
+                    catGroupSavings: 'Savings',
+                    monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+                    unknownUser: 'Unknown',
+                    deletedCategory: 'Deleted Category',
+                    transactionSaveError: 'Error: Could not save data.',
+                    clickToEditBudget: 'Click to edit budget',
+                    deleteTransactionTooltip: 'Delete transaction',
+                    budgetFor: 'New budget for',
+                    allUsers: 'All Users',
+                    langPlTooltip: 'Switch language to Polish',
+                    langEnTooltip: 'Switch language to English',
+                    currPlnTooltip: 'Switch currency to PLN',
+                    currEurTooltip: 'Switch currency to EUR',
+                    personalBudget: 'Personal Budget',
+                    budgetName: 'Budget Name',
+                    saveBtn: 'Save',
+                    inviteUser: 'Invite User',
+                    inviteUserDesc: 'Invite someone to share this budget. They must already have an account.',
+                    inviteBtn: 'Invite',
+                    usersInBudget: 'Users in this budget',
+                    inviteSuccess: 'User {email} was successfully invited!',
+                    inviteErrorUserNotFound: 'User with email {email} not found.',
+                    inviteErrorAlreadyMember: 'User {email} is already a member of this budget.',
+                    inviteErrorGeneric: 'An error occurred while inviting the user.',
+                    budgetNameUpdated: 'Budget name updated.'
+                }
+            };
+
+            // === 2. FUNKCJE POMOCNICZE (Tłumaczenia, Waluta, etc.) ===
+
+            const i18n = (key, replacements = {}) => {
+                let text = translations[currentLang][key] || key;
+                for (const [placeholder, value] of Object.entries(replacements)) {
+                    text = text.replace(`{${placeholder}}`, value);
+                }
+                return text;
+            };
+
+            const formatCurrency = (value) => {
+                if (typeof value !== 'number') value = 0;
+                const locale = currentLang === 'pl' ? 'pl-PL' : 'en-IE';
+                return new Intl.NumberFormat(locale, {
+                    style: 'currency',
+                    currency: currentCurrency,
+                }).format(value);
+            };
+
+            const formatDate = (dateString) => {
+                const locale = currentLang === 'pl' ? 'pl-PL' : 'en-GB';
+                return new Date(dateString).toLocaleDateString(locale);
+            };
+
+            const showMessage = (key, type = 'success', replacements = {}) => {
+                const messageBox = document.getElementById('message-box');
+                messageBox.textContent = i18n(key, replacements);
+                messageBox.classList.remove('hidden', 'bg-teal-100', 'text-teal-900', 'bg-red-100', 'text-red-900');
+                if (type === 'success') {
+                    messageBox.classList.add('bg-teal-100', 'text-teal-900');
+                } else {
+                    messageBox.classList.add('bg-red-100', 'text-red-900');
+                }
+                messageBox.classList.remove('hidden');
+                setTimeout(() => messageBox.classList.add('hidden'), 3000);
+            };
+            
+            // Funkcje Modali (show/hide) - (bez zmian)
+            const showModal = (modalId) => {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    setTimeout(() => {
+                        modal.classList.remove('opacity-0');
+                        modal.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0');
+                    }, 10);
+                }
+            };
+            
+            const hideModal = (modalId) => {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.add('opacity-0');
+                    modal.querySelector('.modal-content').classList.add('scale-95', 'opacity-0');
+                    setTimeout(() => modal.classList.add('hidden'), 300);
+                }
+            };
+            
+            // === 3. LOGIKA FIREBASE (Nowy rdzeń aplikacji) ===
+
+            /**
+             * Nasłuchuje zmian w stanie uwierzytelnienia
+             */
+            const initAuthListener = () => {
+                // Rozłącz stary nasłuchiwacz, jeśli istnieje
+                unsubscribeAuth();
+                
+                unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        // Użytkownik jest zalogowany
+                        currentUser = user;
+                        await loadUserSettings(); // Załaduj ustawienia (język, waluta)
+                        await loadAllUsers(); // Załaduj listę wszystkich użytkowników (UID -> Name)
+                        startApp(); // Uruchom główną aplikację
+                    } else {
+                        // Użytkownik jest wylogowany
+                        currentUser = null;
+                        stopApp(); // Zatrzymaj nasłuchiwacze i pokaż ekran logowania
+                    }
+                });
+            };
+
+            /**
+             * Tworzy nowy, osobisty budżet dla nowego użytkownika
+             */
+            const createPersonalBudget = async (userId, userName) => {
+                const budgetName = i18n('personalBudget'); // "Budżet Osobisty"
+                
+                // 1. Stwórz dokument budżetu
+                const budgetRef = await db.collection('budgets').add({
+                    name: budgetName,
+                    members: [userId], // Tylko on jest członkiem
+                    owner: userId
+                });
+                
+                // 2. Dodaj domyślne kategorie do tego budżetu
+                const batch = db.batch();
+                const categoriesRef = budgetRef.collection('categories');
+                defaultCategories.forEach(cat => {
+                    const newCatRef = categoriesRef.doc(); // Auto-generuj ID
+                    batch.set(newCatRef, cat);
+                });
+                await batch.commit();
+                
+                return budgetRef.id;
+            };
+
+            /**
+             * Uruchamia aplikację: pokazuje UI i podłącza nasłuchiwacze
+             */
+            const startApp = () => {
+                authContainer.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+                fab.classList.remove('hidden');
+                
+                // Podłącz nasłuchiwacz do listy budżetów użytkownika
+                attachUserBudgetsListener();
+                
+                // Reszta inicjalizacji UI
+                populateDateControls();
+            };
+
+            /**
+             * Zatrzymuje aplikację: rozłącza nasłuchiwacze i pokazuje ekran logowania
+             */
+            const stopApp = () => {
+                authContainer.classList.remove('hidden');
+                appContainer.classList.add('hidden');
+                fab.classList.add('hidden');
+                
+                // Rozłącz wszystkie nasłuchiwacze
+                unsubscribeBudgetsList();
+                unsubscribeActiveBudget();
+                
+                // Wyczyść stan
+                localTransactions = [];
+                localCategories = [];
+                localMonthlyBudgets = {};
+                localUsers = {};
+                userBudgets = [];
+                currentBudgetId = null;
+            };
+            
+            /**
+             * Pobiera i zapisuje ustawienia użytkownika z/do Firestore
+             */
+            const loadUserSettings = async () => {
+                const settingsRef = db.collection('users').doc(currentUser.uid).collection('settings').doc('app');
+                const doc = await settingsRef.get();
+                if (doc.exists) {
+                    const settings = doc.data();
+                    currentLang = settings.lang || 'pl';
+                    currentCurrency = settings.currency || 'PLN';
+                }
+                // Zastosuj wczytane (lub domyślne) ustawienia
+                setLanguage(currentLang);
+                setCurrency(currentCurrency);
+            };
+
+            const saveUserSettings = () => {
+                if (!currentUser) return;
+                const settingsRef = db.collection('users').doc(currentUser.uid).collection('settings').doc('app');
+                settingsRef.set({
+                    lang: currentLang,
+                    currency: currentCurrency
+                }, { merge: true });
+            };
+
+            /**
+             * Pobiera RAZ listę wszystkich użytkowników (UID -> Nazwa)
+             */
+            const loadAllUsers = async () => {
+                localUsers = {};
+                try {
+                    const snapshot = await db.collection('users').get();
+                    snapshot.docs.forEach(doc => {
+                        localUsers[doc.id] = doc.data().name || doc.data().email;
+                    });
+                    // Upewnij się, że bieżący użytkownik jest na liście
+                    if (!localUsers[currentUser.uid]) {
+                        localUsers[currentUser.uid] = currentUser.email.split('@')[0];
+                    }
+                } catch (e) {
+                    console.error("Błąd ładowania użytkowników:", e);
+                }
+            };
+            
+            /**
+             * NOWY: Nasłuchuje listy budżetów, do których należy użytkownik
+             */
+            const attachUserBudgetsListener = () => {
+                unsubscribeBudgetsList(); // Rozłącz stary nasłuchiwacz
+                
+                unsubscribeBudgetsList = db.collection('budgets')
+                    .where('members', 'array-contains', currentUser.uid)
+                    .onSnapshot(async (snapshot) => {
+                        if (snapshot.empty) {
+                            // Ten użytkownik nie ma ŻADNYCH budżetów. Prawdopodobnie nowy.
+                            // Stwórz dla niego budżet osobisty.
+                            console.log("Użytkownik nie ma budżetów, tworzenie osobistego...");
+                            const personalBudgetId = await createPersonalBudget(currentUser.uid, localUsers[currentUser.uid] || currentUser.email);
+                            // Nasłuchiwacz automatycznie wykryje ten nowy budżet i uruchomi się ponownie
+                            return; 
+                        }
+                        
+                        userBudgets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        
+                        // Zaktualizuj listę rozwijaną z budżetami
+                        budgetSelect.innerHTML = '';
+                        userBudgets.forEach(budget => {
+                            budgetSelect.add(new Option(budget.name, budget.id));
+                        });
+                        
+                        // Sprawdź, czy nasz `currentBudgetId` jest nadal ważny
+                        if (!currentBudgetId || !userBudgets.some(b => b.id === currentBudgetId)) {
+                            // Jeśli nie, wybierz pierwszy budżet z listy
+                            currentBudgetId = userBudgets[0].id;
+                        }
+                        
+                        budgetSelect.value = currentBudgetId;
+                        
+                        // Teraz podłącz nasłuchiwacze do wybranego budżetu
+                        attachActiveBudgetListeners(currentBudgetId);
+                    });
+            };
+
+            /**
+             * NOWY: Podłącza nasłuchiwacze do danych WYBRANEGO budżetu
+             */
+            const attachActiveBudgetListeners = (budgetId) => {
+                // Rozłącz stare nasłuchiwacze budżetu
+                unsubscribeActiveBudget();
+                
+                const budgetRef = db.collection('budgets').doc(budgetId);
+                
+                // Zbiorczy obiekt do rozłączania
+                const listeners = [];
+                
+                listeners.push(
+                    budgetRef.collection('transactions').onSnapshot(snapshot => {
+                        localTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        localTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        updateAllUI();
+                    }, err => console.error("Błąd nasłuchu transakcji:", err))
+                );
+                    
+                listeners.push(
+                    budgetRef.collection('categories').onSnapshot(snapshot => {
+                        localCategories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        if (localCategories.length === 0) {
+                            // Budżet istnieje, ale nie ma kategorii? Dziwne. Dodajmy domyślne.
+                            seedDefaultCategories(budgetId);
+                        }
+                        updateAllUI();
+                    }, err => console.error("Błąd nasłuchu kategorii:", err))
+                );
+
+                listeners.push(
+                    budgetRef.collection('monthlyBudgets').onSnapshot(snapshot => {
+                        localMonthlyBudgets = {};
+                        snapshot.docs.forEach(doc => {
+                            localMonthlyBudgets[doc.id] = doc.data();
+                        });
+                        updateAllUI();
+                    }, err => console.error("Błąd nasłuchu budżetów mies.:", err))
+                );
+                
+                // Nasłuchuj też zmian w głównym dokumencie budżetu (np. zmiana nazwy, lista członków)
+                listeners.push(
+                    budgetRef.onSnapshot(doc => {
+                        if (!doc.exists) return; // Budżet został usunięty?
+                        const budgetData = doc.data();
+                        localBudgetMembers = budgetData.members || [];
+                        // Zaktualizuj UI, które zależy od członków (np. filtr użytkownika)
+                        updateAllUI();
+                    })
+                );
+                
+                // Funkcja do rozłączenia wszystkich tych nasłuchiwaczy
+                unsubscribeActiveBudget = () => listeners.forEach(unsub => unsub());
+            };
+
+
+            /**
+             * Funkcja do dodawania domyślnych kategorii (teraz przyjmuje budgetId)
+             */
+            const seedDefaultCategories = async (budgetId) => {
+                const categoriesRef = db.collection('budgets').doc(budgetId).collection('categories');
+                const snapshot = await categoriesRef.limit(1).get();
+                
+                if (snapshot.empty) {
+                    console.log(`Brak kategorii w budżecie ${budgetId}, tworzenie domyślnych...`);
+                    const batch = db.batch();
+                    defaultCategories.forEach(cat => {
+                        const newCatRef = categoriesRef.doc();
+                        batch.set(newCatRef, cat);
+                    });
+                    await batch.commit();
+                    console.log("Domyślne kategorie utworzone.");
+                }
+            };
+
+            // === 4. LOGIKA APLIKACJI (Przeliczanie) ===
+
+            const getBudgetedAmount = (catId) => {
+                return localMonthlyBudgets[currentMonthKey]?.[catId] || 0;
+            };
+
+            const calculateAll = () => {
+                // ... (Logika filtrowania transakcji i obliczania kategorii bez zmian) ...
+                // ... (Używa `localTransactions`, `localCategories`, `currentMonthKey`, `currentFilterUserId`, `localUsers`) ...
+                
+                const currentMonthTransactions = localTransactions.filter(t => {
+                    const tDate = new Date(t.date);
+                    const [month, year] = currentMonthKey.split('-').map(Number);
+                    return tDate.getMonth() === month && tDate.getFullYear() === year;
+                });
+
+                const filteredTransactions = currentMonthTransactions.filter(t => !currentFilterUserId || t.userId === currentFilterUserId);
+                
+                const calculatedCategories = localCategories.map(cat => {
+                    const budgeted = getBudgetedAmount(cat.id);
+                    
+                    const catTransactions = filteredTransactions.filter(t => t.categoryId === cat.id);
+                    const actual = catTransactions.reduce((sum, t) => sum + t.amount, 0);
+                    
+                    const actualByUser = {};
+                    for (const userId in localUsers) {
+                        actualByUser[userId] = currentMonthTransactions
+                            .filter(t => t.categoryId === cat.id && t.userId === userId)
+                            .reduce((sum, t) => sum + t.amount, 0);
+                    }
+                    
+                    const remaining = budgeted - actual;
+                    return { ...cat, actual, remaining, budgeted, actualByUser };
+                });
+
+                const sumByType = (type, prop) => 
+                    calculatedCategories
+                        .filter(c => c.type === type)
+                        .reduce((sum, c) => sum + c[prop], 0);
+
+                const totalIncomeBudgeted = sumByType('Income', 'budgeted');
+                const totalIncomeActual = sumByType('Income', 'actual');
+                const totalExpensesBudgeted = sumByType('Expense', 'budgeted') + sumByType('Bill', 'budgeted') + sumByType('Debt', 'budgeted') + sumByType('Savings', 'budgeted');
+                const totalExpensesActual = sumByType('Expense', 'actual') + sumByType('Bill', 'actual') + sumByType('Debt', 'actual') + sumByType('Savings', 'actual');
+                const amountLeftToSpend = totalExpensesBudgeted - totalExpensesActual;
+
+                return {
+                    calculatedCategories,
+                    summaries: {
+                        totalIncomeBudgeted,
+                        totalIncomeActual,
+                        totalExpensesBudgeted,
+                        totalExpensesActual,
+                        amountLeftToSpend
+                    },
+                    filteredTransactions
+                };
+            };
+            
+            // === 5. RENDEROWANIE (Bez zmian, używają `localUsers`) ===
+
+            const renderSummaryCards = (summaries) => {
+                document.getElementById('summary-left-to-spend').textContent = formatCurrency(summaries.amountLeftToSpend);
+                document.getElementById('summary-spent-so-far').textContent = formatCurrency(summaries.totalExpensesActual);
+                document.getElementById('summary-total-budgeted').textContent = formatCurrency(summaries.totalExpensesBudgeted);
+                document.getElementById('summary-income-actual').textContent = formatCurrency(summaries.totalIncomeActual);
+                document.getElementById('summary-income-budgeted').textContent = formatCurrency(summaries.totalIncomeBudgeted);
+                document.getElementById('summary-expenses-actual').textContent = formatCurrency(summaries.totalExpensesActual);
+                document.getElementById('summary-expenses-budgeted').textContent = formatCurrency(summaries.totalExpensesBudgeted);
+            };
+
+            const createCategoryTableHTML = (categories, title) => {
+                if (categories.length === 0) return '';
+                const rows = categories.map(cat => {
+                    const percent = (cat.budgeted > 0) ? Math.max(0, Math.min(100, (cat.actual / cat.budgeted) * 100)) : 0;
+                    let barColor = 'bg-brand-teal';
+                    if (cat.type !== 'Income') {
+                        barColor = percent > 90 ? 'bg-red-500' : (percent > 75 ? 'bg-yellow-500' : 'bg-brand-purple');
+                    }
+                    
+                    let userBreakdownHTML = '';
+                    let totalUserSpending = 0;
+                    const userSpans = [];
+
+                    // Użyj `localBudgetMembers` aby pokazać tylko członków TEGO budżetu
+                    localBudgetMembers.forEach(userId => {
+                        const userAmount = cat.actualByUser[userId] || 0;
+                        if (userAmount > 0) {
+                            userSpans.push(`<span>${localUsers[userId] || i18n('unknownUser')}: ${formatCurrency(userAmount)}</span>`);
+                            totalUserSpending += userAmount;
+                        }
+                    });
+
+                    if (cat.type !== 'Income' && totalUserSpending > 0) {
+                        userBreakdownHTML = `<div class="flex justify-end text-xs text-gray-500 space-x-3 pt-1">${userSpans.join('')}</div>`;
+                    }
+
+                    return `
+                        <div class="py-2">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-200">${cat.name}</span>
+                                <span class="text-gray-400">
+                                    ${formatCurrency(cat.actual)} / <span class="budget-value" data-id="${cat.id}" title="${i18n('clickToEditBudget')}">${formatCurrency(cat.budgeted)}</span>
+                                </span>
+                            </div>
+                            <div class="w-full progress-bar rounded-full h-2">
+                                <div class="${barColor} progress h-2 rounded-full" style="width: ${percent}%"></div>
+                            </div>
+                            ${userBreakdownHTML}
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="space-y-2">
+                        <h3 class="text-base font-semibold text-white tracking-wider uppercase">${title}</h3>
+                        <div class="divide-y divide-gray-700">
+                            ${rows}
+                        </div>
+                    </div>
+                `;
+            };
+            
+            const renderCategoryTables = (calculatedCategories) => {
+                const types = ['Income', 'Expense', 'Bill', 'Debt', 'Savings'];
+                const titleKeys = ['catGroupIncome', 'catGroupExpense', 'catGroupBill', 'catGroupDebt', 'catGroupSavings'];
+
+                containerIds.forEach((id, index) => {
+                    document.getElementById(id).innerHTML = createCategoryTableHTML(
+                        calculatedCategories.filter(c => c.type === types[index]), i18n(titleKeys[index])
+                    );
+                });
+            };
+
+            const renderTransactionList = (transactionsToRender) => {
+                const container = document.getElementById('transaction-list-container');
+                const noTransactionsEl = document.getElementById('no-transactions');
+                const sortedTransactions = transactionsToRender; // Już posortowane
+
+                Array.from(container.children).forEach(child => child.id !== 'no-transactions' && container.removeChild(child));
+
+                if (sortedTransactions.length === 0) {
+                    noTransactionsEl.classList.remove('hidden');
+                } else {
+                    noTransactionsEl.classList.add('hidden');
+                    const newTransactionsHTML = sortedTransactions.map(t => {
+                        const category = localCategories.find(c => c.id === t.categoryId);
+                        const categoryName = category ? category.name : i18n('deletedCategory');
+                        const amountColor = category && category.type === 'Income' ? 'text-brand-teal' : 'text-gray-200';
+                        const sign = category && category.type === 'Income' ? '+' : '-';
+                        const user = localUsers[t.userId] || i18n('unknownUser');
+
+                        return `
+                            <div class="flex items-center justify-between py-3 border-b border-gray-700/50">
+                                <div class="flex-grow">
+                                    <p class="font-medium text-white">${t.description}</p>
+                                    <p class="text-sm text-gray-400">${categoryName} &bull; ${user} &bull; ${formatDate(t.date)}</p>
+                                </div>
+                                <span class="font-medium text-lg ${amountColor} ml-4">
+                                    ${sign}${formatCurrency(t.amount)}
+                                </span>
+                                <button data-id="${t.id}" class="delete-trans-btn text-red-500 hover:text-red-300 ml-2" title="${i18n('deleteTransactionTooltip')}">&times;</button>
+                            </div>
+                        `;
+                    }).join('');
+                    container.insertAdjacentHTML('beforeend', newTransactionsHTML);
+                }
+            };
+
+            const renderCategoryManagerList = () => {
+                const container = document.getElementById('category-manager-list');
+                const typeKeys = { 'Income': 'catTypeIncome', 'Expense': 'catTypeExpense', 'Bill': 'catTypeBill', 'Debt': 'catTypeDebt', 'Savings': 'catTypeSavings' };
+
+                container.innerHTML = localCategories.map(cat => `
+                    <div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                        <div>
+                            <p class="font-medium text-white">${cat.name}</p>
+                            <p class="text-sm text-gray-400">${i18n(typeKeys[cat.type])} &bull; ${i18n('defaultBudget')}: ${formatCurrency(cat.budgeted)}</p>
+                        </div>
+                        <div class="space-x-2 flex-shrink-0 ml-4">
+                            <button data-id="${cat.id}" class="edit-cat-btn text-brand-teal hover:text-teal-400 font-medium text-sm" data-i18n-key="edit">Edytuj</button>
+                            <button data-id="${cat.id}" class="delete-cat-btn text-red-500 hover:text-red-400 font-medium text-sm" data-i18n-key="delete">Usuń</button>
+                        </div>
+                    </div>
+                `).join('');
+            };
+            
+            const renderBudgetManagerList = () => {
+                const container = document.getElementById('budget-user-list');
+                container.innerHTML = localBudgetMembers.map(userId => `
+                    <div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                        <p class="font-medium text-white">${localUsers[userId] || i18n('unknownUser')}</p>
+                    </div>
+                `).join('');
+            };
+
+            const populateCategorySelect = () => {
+                const select = document.getElementById('trans-category');
+                const typeKeys = { 'Income': 'catGroupIncome', 'Expense': 'catGroupExpense', 'Bill': 'catGroupBill', 'Debt': 'catGroupDebt', 'Savings': 'catGroupSavings' };
+                select.innerHTML = `<option value="" disabled selected>${i18n('selectCategory')}</option>`;
+                Object.keys(typeKeys).forEach(typeKey => {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = i18n(typeKeys[typeKey]);
+                    localCategories.filter(c => c.type === typeKey).forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat.id;
+                        option.textContent = cat.name;
+                        optgroup.appendChild(option);
+                    });
+                    select.appendChild(optgroup);
+                });
+            };
+            
+            const populateUserFilterSelect = () => {
+                const select = document.getElementById('filter-user-select');
+                select.innerHTML = `<option value="">${i18n('allUsers')}</option>`;
+                // Wypełnij tylko członkami TEGO budżetu
+                localBudgetMembers.forEach(userId => {
+                    const option = document.createElement('option');
+                    option.value = userId;
+                    option.textContent = localUsers[userId] || i18n('unknownUser');
+                    select.appendChild(option);
+                });
+                select.value = currentFilterUserId || '';
+            };
+
+            const populateDateControls = () => {
+                document.getElementById('trans-date').valueAsDate = new Date();
+                const monthSelect = document.getElementById('month-select');
+                const yearSelect = document.getElementById('year-select');
+                const months = i18n('monthNames');
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth(); // 0-11
+                
+                if(currentMonthKey === '') {
+                    currentMonthKey = `${currentMonth}-${currentYear}`;
+                }
+
+                monthSelect.innerHTML = '';
+                months.forEach((month, i) => {
+                    monthSelect.add(new Option(month, i));
+                });
+                
+                yearSelect.innerHTML = '';
+                [currentYear - 2, currentYear - 1, currentYear, currentYear + 1, currentYear + 2].forEach(year => {
+                    yearSelect.add(new Option(year, year));
+                });
+
+                const [monthFromKey, yearFromKey] = currentMonthKey.split('-').map(Number);
+                monthSelect.value = monthFromKey;
+                yearSelect.value = yearFromKey;
+            };
+            
+            const populateCategoryTypeSelect = () => {
+                const select = document.getElementById('cat-form-type');
+                const typeKeys = { 'Income': 'catTypeIncome', 'Expense': 'catTypeExpense', 'Bill': 'catTypeBill', 'Debt': 'catTypeDebt', 'Savings': 'catTypeSavings' };
+                select.innerHTML = '';
+                Object.entries(typeKeys).forEach(([key, i18nKey]) => {
+                    select.add(new Option(i18n(i18nKey), key));
+                });
+            };
+
+            // === 6. WYKRESY (Logika bez zmian, ale z niszczeniem) ===
+
+            const initCharts = (data) => {
+                const { calculatedCategories } = data;
+                
+                // --- Wykres Kołowy ---
+                const doughnutCtx = document.getElementById('spendingDoughnutChart').getContext('2d');
+                if (spendingDoughnutChart) spendingDoughnutChart.destroy();
+                const doughnutData = calculatedCategories.filter(c => c.type !== 'Income' && c.actual > 0);
+                spendingDoughnutChart = new Chart(doughnutCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: doughnutData.map(c => c.name),
+                        datasets: [{
+                            data: doughnutData.map(c => c.actual),
+                            backgroundColor: ['#14b8a6', '#ec4899', '#a855f7', '#f59e0b', '#3b82f6', '#ef4444', '#6b7280'],
+                            borderColor: '#1f2937',
+                            borderWidth: 4,
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, cutout: '70%',
+                        plugins: { legend: { position: 'bottom', labels: { color: '#d1d5db', font: { family: 'Inter' } } } }
+                    }
+                });
+                
+                // --- Wykres Słupkowy ---
+                const barCtx = document.getElementById('budgetBarChart').getContext('2d');
+                if (budgetBarChart) budgetBarChart.destroy();
+                const barData = calculatedCategories.filter(c => c.type === 'Expense'); 
+                budgetBarChart = new Chart(barCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: barData.map(c => c.name),
+                        datasets: [
+                            { label: i18n('chartBudgeted'), data: barData.map(c => c.budgeted), backgroundColor: '#374151', borderRadius: 4 },
+                            { label: i18n('chartSpent'), data: barData.map(c => c.actual), backgroundColor: '#a855f7', borderRadius: 4 }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: '#374151' }, ticks: { color: '#9ca3af', font: { family: 'Inter' } } },
+                            x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { family: 'Inter' } } }
+                        },
+                        plugins: { legend: { position: 'top', labels: { color: '#d1d5db', font: { family: 'Inter' } } } }
+                    }
+                });
+            };
+
+            const updateCharts = (data) => {
+                if (!spendingDoughnutChart || !budgetBarChart) {
+                    initCharts(data);
+                    return;
+                }
+                const { calculatedCategories } = data;
+                const doughnutData = calculatedCategories.filter(c => c.type !== 'Income' && c.actual > 0);
+                spendingDoughnutChart.data.labels = doughnutData.map(c => c.name);
+                spendingDoughnutChart.data.datasets[0].data = doughnutData.map(c => c.actual);
+                spendingDoughnutChart.update();
+
+                const barData = calculatedCategories.filter(c => c.type === 'Expense');
+                budgetBarChart.data.labels = barData.map(c => c.name);
+                budgetBarChart.data.datasets[0].label = i18n('chartBudgeted');
+                budgetBarChart.data.datasets[0].data = barData.map(c => c.budgeted);
+                budgetBarChart.data.datasets[1].label = i18n('chartSpent');
+                budgetBarChart.data.datasets[1].data = barData.map(c => c.actual);
+                budgetBarChart.update();
+            };
+
+            // === 7. HANDLERY (Zaktualizowane do Firestore) ===
+
+            // --- Auth Handlers ---
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-password').value;
+                const errorBox = document.getElementById('auth-error');
+                try {
+                    errorBox.classList.add('hidden');
+                    await auth.signInWithEmailAndPassword(email, pass);
+                    // Sukces, resztę zrobi onAuthStateChanged
+                } catch (err) {
+                    errorBox.textContent = i18n('authErrorLogin');
+                    errorBox.classList.remove('hidden');
+                }
+            });
+
+            document.getElementById('register-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('register-name').value;
+                const email = document.getElementById('register-email').value;
+                const pass = document.getElementById('register-password').value;
+                const errorBox = document.getElementById('auth-error');
+                
+                if (!name) {
+                     errorBox.textContent = i18n('fillAllFields');
+                     errorBox.classList.remove('hidden');
+                     return;
+                }
+                
+                try {
+                    errorBox.classList.add('hidden');
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
+                    // Utwórz profil użytkownika w kolekcji 'users'
+                    await db.collection('users').doc(userCredential.user.uid).set({
+                        name: name,
+                        email: email
+                    });
+                    // Sukces, resztę zrobi onAuthStateChanged (który stworzy budżet)
+                } catch (err) {
+                    errorBox.textContent = i18n('authErrorRegister');
+                    errorBox.classList.remove('hidden');
+                }
+            });
+            
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                auth.signOut();
+            });
+
+            // --- Transaction Handlers ---
+            document.getElementById('fab-add-transaction').addEventListener('click', () => {
+                document.getElementById('transaction-form').reset();
+                document.getElementById('trans-date').valueAsDate = new Date();
+                populateCategorySelect();
+                document.getElementById('message-box').classList.add('hidden');
+                showModal('transaction-modal');
+            });
+            
+            document.getElementById('close-transaction-modal').addEventListener('click', () => hideModal('transaction-modal'));
+            
+            const handleAddTransaction = async (e) => {
+                e.preventDefault();
+                if (!currentBudgetId) return;
+                
+                const form = e.target;
+                const formData = new FormData(form);
+                
+                const categoryId = formData.get('trans-category');
+                const category = localCategories.find(c => c.id === categoryId);
+                const amount = parseFloat(formData.get('trans-amount'));
+                
+                if (!category) {
+                    showMessage('invalidCategory', 'error'); return;
+                }
+                if (isNaN(amount) || amount <= 0) {
+                    showMessage('invalidAmount', 'error'); return;
+                }
+
+                const newTransaction = {
+                    date: formData.get('trans-date'),
+                    description: formData.get('trans-description'),
+                    categoryId: categoryId,
+                    amount: amount,
+                    userId: currentUser.uid, // Zawsze dodawaj jako zalogowany użytkownik
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                try {
+                    await db.collection('budgets').doc(currentBudgetId).collection('transactions').add(newTransaction);
+                    showMessage('transactionAdded', 'success');
+                    hideModal('transaction-modal');
+                    // onSnapshot to zrobi!
+                } catch (err) {
+                    console.error("Błąd dodawania transakcji:", err);
+                    showMessage('transactionSaveError', 'error');
+                }
+            };
+            document.getElementById('transaction-form').addEventListener('submit', handleAddTransaction);
+
+            const handleDeleteTransaction = async (e) => {
+                if (e.target.classList.contains('delete-trans-btn')) {
+                    const transId = e.target.dataset.id;
+                    if (confirm(i18n('confirmDelete'))) {
+                        try {
+                            await db.collection('budgets').doc(currentBudgetId).collection('transactions').doc(transId).delete();
+                            showMessage('transactionDeleted', 'success');
+                            // onSnapshot automatycznie odświeży UI
+                        } catch (err) {
+                            console.error("Błąd usuwania transakcji:", err);
+                        }
+                    }
+                }
+            };
+            document.getElementById('transaction-list-container').addEventListener('click', handleDeleteTransaction);
+            
+            // --- NEW: Budget Select Handler ---
+            budgetSelect.addEventListener('change', (e) => {
+                const newBudgetId = e.target.value;
+                if (newBudgetId !== currentBudgetId) {
+                    currentBudgetId = newBudgetId;
+                    // Przełącz nasłuchiwacze na nowy budżet
+                    attachActiveBudgetListeners(currentBudgetId);
+                }
+            });
+
+            // --- Date Handlers ---
+            const handleDateChange = (e) => {
+                const monthSelect = document.getElementById('month-select');
+                const yearSelect = document.getElementById('year-select');
+                currentMonthKey = `${monthSelect.value}-${yearSelect.value}`;
+                
+                const budgetDocRef = db.collection('budgets').doc(currentBudgetId).collection('monthlyBudgets').doc(currentMonthKey);
+                budgetDocRef.get().then(doc => {
+                    if (!doc.exists) {
+                        const newMonthlyBudget = {};
+                        localCategories.forEach(cat => {
+                            newMonthlyBudget[cat.id] = cat.budgeted || 0;
+                        });
+                        budgetDocRef.set(newMonthlyBudget);
+                        showMessage('newMonthSheet', 'success');
+                    }
+                    updateAllUI();
+                });
+            };
+            document.getElementById('month-select').addEventListener('change', handleDateChange);
+            document.getElementById('year-select').addEventListener('change', handleDateChange);
+
+            // --- Budget Edit Handler ---
+            const handleBudgetEdit = async (e) => {
+                if (e.target.classList.contains('budget-value')) {
+                    const catId = e.target.dataset.id;
+                    const category = localCategories.find(c => c.id === catId);
+                    const currentBudget = getBudgetedAmount(catId);
+                    
+                    if (category) {
+                        const newBudgetValue = prompt(`${i18n('budgetFor')} "${category.name}":`, currentBudget);
+                        if (newBudgetValue === null) return;
+
+                        const newAmount = parseFloat(newBudgetValue.replace(',', '.'));
+                        
+                        if (!isNaN(newAmount) && newAmount >= 0) {
+                            try {
+                                const budgetDocRef = db.collection('budgets').doc(currentBudgetId).collection('monthlyBudgets').doc(currentMonthKey);
+                                await budgetDocRef.set({ [catId]: newAmount }, { merge: true });
+                                showMessage('budgetUpdated', 'success');
+                            } catch (err) {
+                                console.error("Błąd aktualizacji budżetu:", err);
+                            }
+                        } else {
+                            showMessage('invalidAmount', 'error');
+                        }
+                    }
+                }
+            };
+            containerIds.forEach(id => document.getElementById(id).addEventListener('click', handleBudgetEdit));
+
+            // --- Category Manager Handlers (Logika bez zmian, ale odnosi się do `currentBudgetId`) ---
+            let editingCatId = null;
+            const categoryModal = document.getElementById('category-manager-modal');
+            const categoryForm = document.getElementById('category-form');
+            const catFormName = document.getElementById('cat-form-name');
+            const catFormBudgeted = document.getElementById('cat-form-budgeted');
+            const catFormType = document.getElementById('cat-form-type');
+            const catFormSubmitBtn = document.getElementById('cat-form-submit');
+            const catFormCancelBtn = document.getElementById('cat-form-cancel');
+
+            const resetCategoryForm = () => {
+                editingCatId = null;
+                categoryForm.reset();
+                catFormSubmitBtn.textContent = i18n('addCategoryBtn');
+                catFormCancelBtn.classList.add('hidden');
+            };
+
+            const showCategoryModal = () => {
+                renderCategoryManagerList();
+                resetCategoryForm();
+                populateCategoryTypeSelect();
+                showModal('category-manager-modal');
+            };
+            document.getElementById('manage-categories-btn').addEventListener('click', showCategoryModal);
+            document.getElementById('close-category-modal').addEventListener('click', () => hideModal('category-manager-modal'));
+
+            const handleSaveCategory = async (e) => {
+                e.preventDefault();
+                const name = catFormName.value;
+                const budgeted = parseFloat(catFormBudgeted.value);
+                const type = catFormType.value;
+
+                if (!name || isNaN(budgeted) || !type) {
+                    showMessage('fillAllFields', 'error'); return;
+                }
+
+                try {
+                    const categoriesRef = db.collection('budgets').doc(currentBudgetId).collection('categories');
+                    if (editingCatId) {
+                        await categoriesRef.doc(editingCatId).update({ name, budgeted, type });
+                        showMessage('categoryUpdated', 'success');
+                    } else {
+                        await categoriesRef.add({ name, budgeted, type });
+                        showMessage('categoryAdded', 'success');
+                    }
+                    resetCategoryForm();
+                } catch (err) {
+                    console.error("Błąd zapisu kategorii:", err);
+                }
+            };
+            categoryForm.addEventListener('submit', handleSaveCategory);
+            catFormCancelBtn.addEventListener('click', resetCategoryForm);
+
+            const handleCategoryManagerListClick = async (e) => {
+                const target = e.target;
+                const catId = target.dataset.id;
+                
+                if (target.classList.contains('edit-cat-btn')) {
+                    const category = localCategories.find(c => c.id === catId);
+                    if (category) {
+                        editingCatId = catId;
+                        catFormName.value = category.name;
+                        catFormBudgeted.value = category.budgeted;
+                        catFormType.value = category.type;
+                        catFormSubmitBtn.textContent = i18n('saveChangesBtn');
+                        catFormCancelBtn.classList.remove('hidden');
+                        catFormName.focus();
+                    }
+                } else if (target.classList.contains('delete-cat-btn')) {
+                    const query = db.collection('budgets').doc(currentBudgetId).collection('transactions').where('categoryId', '==', catId).limit(1);
+                    const result = await query.get();
+                    
+                    if (!result.empty) {
+                        showMessage('categoryDeleteError', 'error');
+                        return;
+                    }
+                    
+                    if (confirm(i18n('confirmDelete'))) {
+                        try {
+                            await db.collection('budgets').doc(currentBudgetId).collection('categories').doc(catId).delete();
+                            showMessage('categoryDeleted', 'success');
+                            resetCategoryForm();
+                        } catch (err) {
+                            console.error("Błąd usuwania kategorii:", err);
+                        }
+                    }
+                }
+            };
+            document.getElementById('category-manager-list').addEventListener('click', handleCategoryManagerListClick);
+            
+            // --- Yearly Summary Handlers (Bez zmian) ---
+            document.getElementById('yearly-summary-btn').addEventListener('click', () => {
+                const year = document.getElementById('year-select').value;
+                document.getElementById('yearly-summary-title').textContent = `${i18n('yearlySummaryTitle')}: ${year}`;
+                
+                const tableBody = document.getElementById('yearly-summary-table-body');
+                const tableFooter = document.getElementById('yearly-summary-table-footer');
+                const months = i18n('monthNames');
+                
+                let totalIncome = 0;
+                let totalExpenses = 0;
+                let totalSavings = 0;
+                let tableBodyHTML = '';
+
+                for (let i = 0; i < 12; i++) {
+                    const monthKey = `${i}-${year}`;
+                    const monthTransactions = localTransactions.filter(t => {
+                        const tDate = new Date(t.date);
+                        return tDate.getMonth() === i && tDate.getFullYear() == year;
+                    });
+                    
+                    let monthTotals = { income: 0, expenses: 0, savings: 0 };
+                    
+                    monthTransactions.forEach(t => {
+                        const category = localCategories.find(c => c.id === t.categoryId);
+                        if(category) {
+                            if (category.type === 'Income') monthTotals.income += t.amount;
+                            else if (category.type === 'Savings') monthTotals.savings += t.amount;
+                            else monthTotals.expenses += t.amount;
+                        }
+                    });
+                    
+                    totalIncome += monthTotals.income;
+                    totalExpenses += monthTotals.expenses;
+                    totalSavings += monthTotals.savings;
+
+                    tableBodyHTML += `
+                        <tr class="hover:bg-gray-700">
+                            <td class="p-3 text-sm text-white">${months[i]}</td>
+                            <td class="p-3 text-sm text-brand-teal">${formatCurrency(monthTotals.income)}</td>
+                            <td class="p-3 text-sm text-brand-pink">${formatCurrency(monthTotals.expenses)}</td>
+                            <td class="p-3 text-sm text-brand-purple">${formatCurrency(monthTotals.savings)}</td>
+                        </tr>
+                    `;
+                }
+                
+                tableBody.innerHTML = tableBodyHTML;
+                tableFooter.innerHTML = `
+                    <td class="p-3 text-sm text-white">${i18n('total')}</td>
+                    <td class="p-3 text-sm text-brand-teal">${formatCurrency(totalIncome)}</td>
+                    <td class="p-3 text-sm text-brand-pink">${formatCurrency(totalExpenses)}</td>
+                    <td class="p-3 text-sm text-brand-purple">${formatCurrency(totalSavings)}</td>
+                `;
+                
+                showModal('yearly-summary-modal');
+            });
+            document.getElementById('close-yearly-modal').addEventListener('click', () => hideModal('yearly-summary-modal'));
+
+            // --- NEW: Budget Manager Handlers ---
+            document.getElementById('manage-budget-btn').addEventListener('click', () => {
+                const currentBudget = userBudgets.find(b => b.id === currentBudgetId);
+                if (currentBudget) {
+                    document.getElementById('budget-form-name').value = currentBudget.name;
+                }
+                document.getElementById('invite-user-form').reset();
+                document.getElementById('invite-message').classList.add('hidden');
+                renderBudgetManagerList();
+                showModal('budget-manager-modal');
+            });
+            document.getElementById('close-budget-modal').addEventListener('click', () => hideModal('budget-manager-modal'));
+            
+            document.getElementById('budget-name-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const newName = document.getElementById('budget-form-name').value;
+                if (newName && currentBudgetId) {
+                    try {
+                        await db.collection('budgets').doc(currentBudgetId).update({ name: newName });
+                        showMessage('budgetNameUpdated', 'success');
+                        // onSnapshot (w attachUserBudgetsListener) zaktualizuje listę
+                    } catch (err) {
+                        console.error("Błąd zmiany nazwy budżetu:", err);
+                    }
+                }
+            });
+            
+            document.getElementById('invite-user-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('invite-email').value;
+                const messageEl = document.getElementById('invite-message');
+                messageEl.classList.remove('hidden', 'text-teal-400', 'text-red-400');
+
+                try {
+                    // 1. Znajdź użytkownika po emailu
+                    const userQuery = await db.collection('users').where('email', '==', email).limit(1).get();
+                    if (userQuery.empty) {
+                        messageEl.textContent = i18n('inviteErrorUserNotFound', {email});
+                        messageEl.classList.add('text-red-400');
+                        return;
+                    }
+                    
+                    const userToInviteId = userQuery.docs[0].id;
+                    
+                    // 2. Sprawdź, czy już nie jest członkiem
+                    if (localBudgetMembers.includes(userToInviteId)) {
+                        messageEl.textContent = i18n('inviteErrorAlreadyMember', {email});
+                        messageEl.classList.add('text-red-400');
+                        return;
+                    }
+
+                    // 3. Dodaj go do tablicy 'members' w budżecie
+                    await db.collection('budgets').doc(currentBudgetId).update({
+                        members: firebase.firestore.FieldValue.arrayUnion(userToInviteId)
+                    });
+
+                    messageEl.textContent = i18n('inviteSuccess', {email});
+                    messageEl.classList.add('text-teal-400');
+                    document.getElementById('invite-user-form').reset();
+                    // onSnapshot (w attachActiveBudgetListeners) zaktualizuje listę członków
+                    
+                } catch (err) {
+                    console.error("Błąd zapraszania użytkownika:", err);
+                    messageEl.textContent = i18n('inviteErrorGeneric');
+                    messageEl.classList.add('text-red-400');
+                }
+            });
+            
+            // --- Settings Handlers (Bez zmian) ---
+            document.getElementById('lang-pl').addEventListener('click', () => { setLanguage('pl'); saveUserSettings(); });
+            document.getElementById('lang-en').addEventListener('click', () => { setLanguage('en'); saveUserSettings(); });
+            document.getElementById('curr-pln').addEventListener('click', () => { setCurrency('PLN'); saveUserSettings(); });
+            document.getElementById('curr-eur').addEventListener('click', () => { setCurrency('EUR'); saveUserSettings(); });
+
+            document.getElementById('filter-user-select').addEventListener('change', (e) => {
+                currentFilterUserId = e.target.value || null;
+                updateAllUI();
+            });
+
+            // --- Język i Tłumaczenia (Bez zmian) ---
+            const setLanguage = (lang) => {
+                currentLang = lang;
+                document.documentElement.lang = lang;
+                document.querySelectorAll('[data-i18n-key]').forEach(el => {
+                    const key = el.dataset.i18nKey;
+                    const translation = i18n(key);
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        if (el.placeholder !== undefined) el.placeholder = translation;
+                    } else if (el.hasAttribute('title') && key.toLowerCase().includes('tooltip')) {
+                        el.title = translation;
+                    } else {
+                        el.textContent = translation;
+                    }
+                });
+                document.getElementById('lang-pl').classList.toggle('active', lang === 'pl');
+                document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+                populateDateControls();
+                updateAllUI();
+            };
+            
+            const setCurrency = (currency) => {
+                currentCurrency = currency;
+                document.getElementById('curr-pln').classList.toggle('active', currency === 'PLN');
+                document.getElementById('curr-eur').classList.toggle('active', currency === 'EUR');
+                updateAllUI();
+            };
+
+            // === 9. EKSPORT CSV (Bez zmian) ===
+            
+            const downloadCSV = (content, fileName) => {
+                const bom = '\uFEFF';
+                const blob = new Blob([bom + content], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", fileName);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            };
+            
+            const handleExportCSV = () => {
+                const year = document.getElementById('year-select').value;
+                const months = i18n('monthNames');
+                
+                let summaryCSV = `Miesiąc;Przychody;Wydatki;Oszczędności\n`;
+                const tableBody = document.getElementById('yearly-summary-table-body');
+                tableBody.querySelectorAll('tr').forEach((row, index) => {
+                    const cols = row.querySelectorAll('td');
+                    const month = months[index];
+                    const income = cols[1].textContent;
+                    const expenses = cols[2].textContent;
+                    const savings = cols[3].textContent;
+                    summaryCSV += `${month};"${income}";"${expenses}";"${savings}"\n`;
+                });
+                const footer = document.getElementById('yearly-summary-table-footer');
+                const totalCols = footer.querySelectorAll('td');
+                summaryCSV += `${i18n('total')};"${totalCols[1].textContent}";"${totalCols[2].textContent}";"${totalCols[3].textContent}"\n`;
+                
+                downloadCSV(summaryCSV, `Podsumowanie_Roczne_${year}.csv`);
+
+                let transactionsCSV = `Data;Opis;Kategoria;Typ;Kwota;Użytkownik\n`;
+                const yearTransactions = localTransactions.filter(t => new Date(t.date).getFullYear() == year);
+                
+                yearTransactions.forEach(t => {
+                    const category = localCategories.find(c => c.id === t.categoryId) || {};
+                    const user = localUsers[t.userId] || i18n('unknownUser');
+                    const sign = category.type === 'Income' ? '' : '-';
+                    
+                    transactionsCSV += `${formatDate(t.date)};`;
+                    transactionsCSV += `"${t.description.replace(/"/g, '""')}";`;
+                    transactionsCSV += `"${category.name || i18n('deletedCategory')}";`;
+                    transactionsCSV += `"${i18n('catType' + category.type)}";`;
+                    transactionsCSV += `"${sign}${t.amount.toFixed(2)}";`;
+                    transactionsCSV += `"${user}"\n`;
+                });
+                
+                downloadCSV(transactionsCSV, `Transakcje_Roczne_${year}.csv`);
+            };
+            document.getElementById('export-csv-btn').addEventListener('click', handleExportCSV);
+
+            // === 10. INICJALIZACJA ===
+            
+            /**
+             * Główna funkcja odświeżająca cały interfejs
+             */
+            const updateAllUI = () => {
+                if (!currentUser || !currentBudgetId) return; // Nie rób nic, jeśli nie jesteśmy gotowi
+                
+                const data = calculateAll();
+                renderSummaryCards(data.summaries);
+                renderCategoryTables(data.calculatedCategories);
+                renderTransactionList(data.filteredTransactions);
+                populateCategorySelect();
+                populateUserFilterSelect(); // Zaktualizuj filtr o członków
+                updateCharts(data);
+            };
+
+            // Uruchom Auth Listener, który rozpocznie całą aplikację
+            initAuthListener();
+        });
+    </script>
+
+</body>
+</html>
