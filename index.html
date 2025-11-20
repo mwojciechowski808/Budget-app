@@ -114,9 +114,15 @@
                         <label for="login-password" class="block text-sm font-medium text-gray-300" data-i18n-key="password">Hasło</label>
                         <input type="password" id="login-password" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
                     </div>
-                    <button type="submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="loginBtn">
-                        Zaloguj się
-                    </button>
+                    <div class="flex flex-col gap-2">
+                        <button type="submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="loginBtn">
+                            Zaloguj się
+                        </button>
+                        <!-- NEW: Forgot Password Button -->
+                        <button type="button" id="forgot-password-btn" class="text-sm text-brand-teal hover:text-teal-400 mt-1" data-i18n-key="forgotPassword">
+                            Zapomniałeś hasła?
+                        </button>
+                    </div>
                 </form>
                 
                 <!-- Register Form -->
@@ -140,6 +146,7 @@
                 </form>
                 
                 <p id="auth-error" class="text-red-400 text-sm mt-4 text-center hidden"></p>
+                <p id="auth-success" class="text-teal-400 text-sm mt-4 text-center hidden"></p>
             </div>
         </div>
     </div>
@@ -318,6 +325,12 @@
                 <h2 class="text-xl font-semibold text-white" data-i18n-key="manageCategoriesTitle">Zarządzaj Kategoriami</h2>
                 <button id="close-category-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
             </div>
+            <div class="mb-4">
+                <!-- NEW: FIX BUTTON -->
+                <button id="force-seed-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg shadow mb-4">
+                    Przywróć Domyślne Kategorie (Naprawa)
+                </button>
+            </div>
             <form id="category-form" class="space-y-4 p-4 border border-gray-700 rounded-lg mb-4">
                  <input type="hidden" id="cat-form-id">
                 <div>
@@ -412,6 +425,16 @@
                 </div>
                 <p id="invite-message" class="text-sm mt-2 hidden"></p>
             </form>
+            
+            <!-- NEW: Load Demo Data Button (PERMISSIONED) -->
+            <div id="demo-data-section" class="hidden">
+                <hr class="border-gray-700 my-4">
+                <div class="flex justify-center">
+                    <button id="load-demo-data-btn" class="text-sm bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow">
+                        Wgraj Dane z Listopada 2025
+                    </button>
+                </div>
+            </div>
 
             <hr class="border-gray-700 my-4">
 
@@ -485,6 +508,7 @@
             const authContainer = document.getElementById('auth-container');
             const appContainer = document.getElementById('app-container');
             const fab = document.getElementById('fab-add-transaction');
+            // FIX: Define GLOBAL
             const containerIds = ['income-table-container', 'expenses-table-container', 'bills-table-container', 'debt-table-container', 'savings-table-container'];
             const budgetSelect = document.getElementById('budget-select');
 
@@ -544,7 +568,8 @@
                     personalBudget: 'Budżet Osobisty', budgetName: 'Nazwa Budżetu', saveBtn: 'Zapisz', inviteUser: 'Zaproś Użytkownika', inviteUserDesc: 'Zaproś kogoś do współdzielenia budżetu.', inviteBtn: 'Zaproś',
                     usersInBudget: 'Użytkownicy w tym budżecie', inviteSuccess: 'Użytkownik zaproszony!', inviteErrorUserNotFound: 'Użytkownik nieznaleziony.', inviteErrorAlreadyMember: 'Użytkownik już jest w budżecie.', inviteErrorGeneric: 'Błąd zapraszania.', budgetNameUpdated: 'Nazwa zaktualizowana.',
                     dangerZone: 'Strefa Niebezpieczna', deleteBudgetDesc: 'Usunięcie budżetu jest trwałe. Stracisz wszystkie dane.', deleteBudgetBtn: 'Usuń ten Budżet', confirmDeleteBudget: 'Czy na pewno chcesz usunąć CAŁY budżet i wszystkie dane? Tego nie można cofnąć.',
-                    createNewBudget: 'Utwórz Nowy Budżet', newBudgetPlaceholder: 'np. Wakacje 2025', createBtn: 'Utwórz', budgetCreated: 'Budżet utworzony!'
+                    createNewBudget: 'Utwórz Nowy Budżet', newBudgetPlaceholder: 'np. Wakacje 2025', createBtn: 'Utwórz', budgetCreated: 'Budżet utworzony!',
+                    forgotPassword: 'Zapomniałeś hasła?', forgotPasswordSuccess: 'E-mail resetujący wysłany!'
                 },
                 en: {
                     welcome: "Welcome to Budget Online", login: "Log In", register: "Or Create New Account", email: "Email", password: "Password", name: "Your Name", loginBtn: "Log In", registerBtn: "Register", logout: "Logout",
@@ -565,7 +590,8 @@
                     personalBudget: 'Personal Budget', budgetName: 'Budget Name', saveBtn: 'Save', inviteUser: 'Invite User', inviteUserDesc: 'Invite someone to share this budget.', inviteBtn: 'Invite',
                     usersInBudget: 'Users in this budget', inviteSuccess: 'User invited!', inviteErrorUserNotFound: 'User not found.', inviteErrorAlreadyMember: 'User already member.', inviteErrorGeneric: 'Error inviting user.', budgetNameUpdated: 'Name updated.',
                     dangerZone: 'Danger Zone', deleteBudgetDesc: 'Deleting a budget is permanent. All data will be lost.', deleteBudgetBtn: 'Delete this Budget', confirmDeleteBudget: 'Are you sure you want to delete the ENTIRE budget? This cannot be undone.',
-                    createNewBudget: 'Create New Budget', newBudgetPlaceholder: 'e.g., Vacation 2025', createBtn: 'Create', budgetCreated: 'Budget created!'
+                    createNewBudget: 'Create New Budget', newBudgetPlaceholder: 'e.g., Vacation 2025', createBtn: 'Create', budgetCreated: 'Budget created!',
+                    forgotPassword: 'Forgot Password?', forgotPasswordSuccess: 'Reset email sent!'
                 }
             };
 
@@ -636,6 +662,8 @@
                     const newCatRef = categoriesRef.doc();
                     batch.set(newCatRef, cat);
                 });
+                
+                // NEW: Inject Demo Data IF this is a personal budget AND requested (Logic handled separately below, but default is empty)
                 await batch.commit();
                 return budgetRef.id;
             };
@@ -674,7 +702,9 @@
                         if (snapshot.empty) {
                             // Użyj nazwy z localUsers lub emaila
                             const userName = localUsers[currentUser.uid] || currentUser.email;
-                            await createPersonalBudget(currentUser.uid, userName);
+                            // Create with demo data by default for the VERY FIRST budget
+                            const newBudgetId = await createPersonalBudget(currentUser.uid, userName);
+                            // Optional: auto-inject demo data here if desired, but keeping it manual via button is safer
                             return; 
                         }
                         userBudgets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -731,6 +761,63 @@
                     await batch.commit();
                 }
             };
+            
+            // NEW: Manual Force Seed & Load Demo Data
+            document.getElementById('force-seed-btn').addEventListener('click', async () => {
+                 if(confirm("Czy na pewno chcesz nadpisać kategorie?")) {
+                     await seedDefaultCategories(currentBudgetId);
+                     alert("Naprawiono!");
+                 }
+            });
+            
+            // Manual trigger for demo data if needed (attached to button in Budget Manager)
+            document.getElementById('load-demo-data-btn').addEventListener('click', async () => {
+                // NEW: Permission check - only allow for specific email
+                if(currentUser.email !== 'mwojciechowski808@gmail.com') {
+                    alert("Brak uprawnień do tej operacji.");
+                    return;
+                }
+
+                if(confirm("Czy chcesz wgrać przykładowe dane z Listopada 2025?")) {
+                    const transRef = db.collection('budgets').doc(currentBudgetId).collection('transactions');
+                    const demoTransactions = [
+                         { date: '2025-11-01', description: 'Wypłata 1', amount: 2250 },
+                         { date: '2025-11-01', description: 'Miesięczny czynsz', amount: 1800 },
+                         { date: '2025-11-03', description: 'Media', amount: 185.50 },
+                         { date: '2025-11-05', description: 'Zakupy spożywcze', amount: 142.30 },
+                         { date: '2025-11-06', description: 'Kolacja na mieście', amount: 65.00 }
+                    ];
+                    const batch = db.batch();
+                     
+                     // Refresh categories map
+                     const cats = localCategories;
+                     
+                     demoTransactions.forEach(dt => {
+                         // Find category
+                         let targetCatName = '';
+                         if(dt.description === 'Wypłata 1') targetCatName = 'Wypłata';
+                         else if(dt.description === 'Miesięczny czynsz') targetCatName = 'Czynsz/Kredyt';
+                         else if(dt.description === 'Media') targetCatName = 'Media';
+                         else if(dt.description === 'Zakupy spożywcze') targetCatName = 'Zakupy spożywcze';
+                         else if(dt.description === 'Kolacja na mieście') targetCatName = 'Restauracje';
+                         
+                         const cat = cats.find(c => c.name === targetCatName);
+                         if(cat) {
+                             const newTransRef = transRef.doc();
+                             batch.set(newTransRef, {
+                                 date: dt.date,
+                                 description: dt.description,
+                                 amount: dt.amount,
+                                 categoryId: cat.id,
+                                 userId: currentUser.uid,
+                                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                             });
+                         }
+                     });
+                     await batch.commit();
+                     alert("Dane wgrane!");
+                }
+            });
 
             // === 4. LOGIKA OBLICZEŃ (Zmieniona dla filtru użytkownika) ===
             const getBudgetedAmount = (catId) => localMonthlyBudgets[currentMonthKey]?.[catId] || 0;
@@ -767,13 +854,10 @@
                 const totalExpensesBudgeted = sumByType('Expense', 'budgeted') + sumByType('Bill', 'budgeted') + sumByType('Debt', 'budgeted') + sumByType('Savings', 'budgeted');
                 const totalExpensesActual = sumByType('Expense', 'actual') + sumByType('Bill', 'actual') + sumByType('Debt', 'actual') + sumByType('Savings', 'actual');
                 
-                // NEW: Modified Logic for Left to Spend
                 let amountLeftToSpend;
                 if (currentFilterUserId) {
-                    // Filtered View: User Income - User Expenses
                     amountLeftToSpend = totalIncomeActual - totalExpensesActual; 
                 } else {
-                    // Global View: Budget - Actual
                     amountLeftToSpend = totalExpensesBudgeted - totalExpensesActual;
                 }
 
@@ -901,7 +985,10 @@
                 document.getElementById('trans-date').valueAsDate = new Date();
                 const monthSelect = document.getElementById('month-select');
                 const yearSelect = document.getElementById('year-select');
+                // FIX: Ensure month names are array
                 const months = i18n('monthNames');
+                const monthList = Array.isArray(months) ? months : Object.values(months);
+
                 const currentYear = new Date().getFullYear();
                 const currentMonth = new Date().getMonth(); // 0-11
                 
@@ -910,7 +997,7 @@
                 }
 
                 monthSelect.innerHTML = '';
-                months.forEach((month, i) => {
+                monthList.forEach((month, i) => {
                     monthSelect.add(new Option(month, i));
                 });
                 
@@ -956,7 +1043,6 @@
             };
 
             // === 7. HANDLERY I USTAWIENIA ===
-            // (Auth Handlers - Login/Register same as before, just triggering new i18n logic)
             const handleAuthSubmit = async (formId, isRegister) => {
                 const email = document.getElementById(isRegister ? 'register-email' : 'login-email').value;
                 const pass = document.getElementById(isRegister ? 'register-password' : 'login-password').value;
@@ -979,8 +1065,22 @@
             document.getElementById('login-form').addEventListener('submit', (e) => { e.preventDefault(); handleAuthSubmit('login-form', false); });
             document.getElementById('register-form').addEventListener('submit', (e) => { e.preventDefault(); handleAuthSubmit('register-form', true); });
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+            
+            document.getElementById('forgot-password-btn').addEventListener('click', async () => {
+                const email = document.getElementById('login-email').value;
+                if (!email) {
+                    alert('Wpisz swój email w pole powyżej.');
+                    return;
+                }
+                try {
+                    await auth.sendPasswordResetEmail(email);
+                    document.getElementById('auth-success').textContent = i18n('forgotPasswordSuccess');
+                    document.getElementById('auth-success').classList.remove('hidden');
+                } catch(error) {
+                    alert('Błąd: ' + error.message);
+                }
+            });
 
-            // NEW: Create Budget Logic
             document.getElementById('create-budget-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const name = document.getElementById('new-budget-name').value;
@@ -992,24 +1092,51 @@
                 }
             });
 
-            // Delete Budget Logic
             document.getElementById('delete-budget-btn').addEventListener('click', async () => {
                 if(confirm(i18n('confirmDeleteBudget'))) {
                     try {
                         const batch = db.batch();
-                        // Na kliencie nie możemy usunąć kolekcji rekurencyjnie, więc usuwamy tylko to co mamy załadowane lokalnie w cache 
-                        // lub po prostu usuwamy dokument budżetu i liczymy, że backend (jeśli byłby) posprząta.
-                        // Dla bezpieczeństwa klienta: usuwamy dokument budżetu. Subkolekcje staną się sierotami (standard Firestore).
                         await db.collection('budgets').doc(currentBudgetId).delete();
-                        // Odświeżenie listy budżetów nastąpi automatycznie przez listener.
                         hideModal('budget-manager-modal');
                     } catch (e) {
                         console.error(e);
                     }
                 }
             });
+            
+            // Budget Manager & Invites
+            document.getElementById('manage-budget-btn').onclick = () => {
+                 const b = userBudgets.find(bud => bud.id === currentBudgetId);
+                 if(b) document.getElementById('budget-form-name').value = b.name;
+                 const userList = document.getElementById('budget-user-list');
+                 userList.innerHTML = localBudgetMembers.map(uid => `<div class="p-2 bg-gray-700 rounded text-white">${localUsers[uid] || uid}</div>`).join('');
+                 
+                 const demoSection = document.getElementById('demo-data-section');
+                 if (currentUser && currentUser.email === 'mwojciechowski808@gmail.com') {
+                     demoSection.classList.remove('hidden');
+                 } else {
+                     demoSection.classList.add('hidden');
+                 }
+                 
+                 showModal('budget-manager-modal');
+            };
+            document.getElementById('close-budget-modal').onclick = () => hideModal('budget-manager-modal');
+            document.getElementById('budget-name-form').onsubmit = async (e) => {
+                e.preventDefault();
+                await db.collection('budgets').doc(currentBudgetId).update({ name: document.getElementById('budget-form-name').value });
+                showMessage('budgetNameUpdated');
+            };
+            document.getElementById('invite-user-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('invite-email').value;
+                const snap = await db.collection('users').where('email','==',email).get();
+                if(snap.empty) return showMessage('inviteErrorUserNotFound', 'error', {email});
+                const uid = snap.docs[0].id;
+                if(localBudgetMembers.includes(uid)) return showMessage('inviteErrorAlreadyMember', 'error', {email});
+                await db.collection('budgets').doc(currentBudgetId).update({ members: firebase.firestore.FieldValue.arrayUnion(uid) });
+                showMessage('inviteSuccess', 'success', {email});
+            };
 
-            // Language / Currency Switchers (Auth Screen)
             const setLang = (lang) => { currentLang = lang; document.documentElement.lang = lang; updateTexts(); };
             const setCurr = (curr) => { currentCurrency = curr; updateTexts(); };
             
@@ -1020,7 +1147,6 @@
                     else if(el.title && k.includes('Tooltip')) el.title = i18n(k);
                     else el.textContent = i18n(k);
                 });
-                // Update buttons state
                 ['auth-lang','lang'].forEach(p => {
                     document.getElementById(`${p}-pl`)?.classList.toggle('active', currentLang==='pl');
                     document.getElementById(`${p}-en`)?.classList.toggle('active', currentLang==='en');
@@ -1029,13 +1155,11 @@
                     document.getElementById(`${p}-pln`)?.classList.toggle('active', currentCurrency==='PLN');
                     document.getElementById(`${p}-eur`)?.classList.toggle('active', currentCurrency==='EUR');
                 });
-                
                 if(currentUser) { 
                     populateDateControls(); updateAllUI(); 
                 }
             };
 
-            // Listeners for buttons
             document.getElementById('auth-lang-pl').onclick = () => setLang('pl');
             document.getElementById('auth-lang-en').onclick = () => setLang('en');
             document.getElementById('auth-curr-pln').onclick = () => setCurr('PLN');
@@ -1048,8 +1172,6 @@
 
             // Initialize
             initAuthListener();
-            
-            // ... (Reszta handlerów transakcji, kategorii, budżetu - bez większych zmian logicznych) ...
             
             document.getElementById('fab-add-transaction').onclick = () => {
                  document.getElementById('transaction-form').reset();
@@ -1075,48 +1197,9 @@
                 }
             };
             
-            const populateCategorySelect = () => {
-                const sel = document.getElementById('trans-category');
-                const keys = { 'Income': 'catGroupIncome', 'Expense': 'catGroupExpense', 'Bill': 'catGroupBill', 'Debt': 'catGroupDebt', 'Savings': 'catGroupSavings' };
-                sel.innerHTML = `<option value="" disabled selected>${i18n('selectCategory')}</option>`;
-                Object.keys(keys).forEach(k => {
-                    const grp = document.createElement('optgroup'); grp.label = i18n(keys[k]);
-                    localCategories.filter(c => c.type === k).forEach(c => grp.appendChild(new Option(c.name, c.id)));
-                    sel.appendChild(grp);
-                });
-            };
-            
-            // Budget Manager & Invites
-            document.getElementById('manage-budget-btn').onclick = () => {
-                 const b = userBudgets.find(bud => bud.id === currentBudgetId);
-                 if(b) document.getElementById('budget-form-name').value = b.name;
-                 const userList = document.getElementById('budget-user-list');
-                 userList.innerHTML = localBudgetMembers.map(uid => `<div class="p-2 bg-gray-700 rounded text-white">${localUsers[uid] || uid}</div>`).join('');
-                 showModal('budget-manager-modal');
-            };
-            document.getElementById('close-budget-modal').onclick = () => hideModal('budget-manager-modal');
-            document.getElementById('budget-name-form').onsubmit = async (e) => {
-                e.preventDefault();
-                await db.collection('budgets').doc(currentBudgetId).update({ name: document.getElementById('budget-form-name').value });
-                showMessage('budgetNameUpdated');
-            };
-            document.getElementById('invite-user-form').onsubmit = async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('invite-email').value;
-                const snap = await db.collection('users').where('email','==',email).get();
-                if(snap.empty) return showMessage('inviteErrorUserNotFound', 'error', {email});
-                const uid = snap.docs[0].id;
-                if(localBudgetMembers.includes(uid)) return showMessage('inviteErrorAlreadyMember', 'error', {email});
-                await db.collection('budgets').doc(currentBudgetId).update({ members: firebase.firestore.FieldValue.arrayUnion(uid) });
-                showMessage('inviteSuccess', 'success', {email});
-            };
-            
             // Filter
             document.getElementById('filter-user-select').onchange = (e) => { currentFilterUserId = e.target.value || null; updateAllUI(); };
             
-            // POPRAWKA: Zdefiniowano containerIds globalnie
-            const containerIds = ['income-table-container', 'expenses-table-container', 'bills-table-container', 'debt-table-container', 'savings-table-container'];
-
             const updateAllUI = () => {
                 if(!currentUser || !currentBudgetId) return;
                 const data = calculateAll();
@@ -1124,7 +1207,6 @@
                 renderCategoryTables(data.calculatedCategories);
                 renderTransactionList(data.filteredTransactions);
                 
-                // Update user filter dropdown
                 const filterSel = document.getElementById('filter-user-select');
                 const currentVal = filterSel.value;
                 filterSel.innerHTML = `<option value="">${i18n('allUsers')}</option>`;
@@ -1134,19 +1216,15 @@
                 initCharts(data);
             };
 
-            // Budget editing logic fix
             const handleBudgetEdit = async (e) => {
                 if (e.target.classList.contains('budget-value')) {
                     const catId = e.target.dataset.id;
                     const category = localCategories.find(c => c.id === catId);
                     const currentBudget = getBudgetedAmount(catId);
-                    
                     if (category) {
                         const newBudgetValue = prompt(`${i18n('budgetFor')} "${category.name}":`, currentBudget);
                         if (newBudgetValue === null) return;
-
                         const newAmount = parseFloat(newBudgetValue.replace(',', '.'));
-                        
                         if (!isNaN(newAmount) && newAmount >= 0) {
                             try {
                                 const budgetDocRef = db.collection('budgets').doc(currentBudgetId).collection('monthlyBudgets').doc(currentMonthKey);
