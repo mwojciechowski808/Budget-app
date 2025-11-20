@@ -463,7 +463,6 @@
         document.addEventListener('DOMContentLoaded', () => {
 
             // === 0. KONFIGURACJA FIREBASE ===
-            // !! WAŻNE !! - To jest Twój klucz, który mi podałeś wcześniej.
             const firebaseConfig = {
                 apiKey: "AIzaSyALc9fMeTrLKHGrImqYumKpq0QbuUkJ0Yc",
                 authDomain: "budgeting-app-25c25.firebaseapp.com",
@@ -498,6 +497,8 @@
             let localTransactions = [];
             let localCategories = [];
             let localMonthlyBudgets = {};
+            // FIXED: Define GLOBAL containerIds once
+            const containerIds = ['income-table-container', 'expenses-table-container', 'bills-table-container', 'debt-table-container', 'savings-table-container'];
 
             // Nasłuchiwacze
             let unsubscribeAuth = () => {};
@@ -508,8 +509,6 @@
             const authContainer = document.getElementById('auth-container');
             const appContainer = document.getElementById('app-container');
             const fab = document.getElementById('fab-add-transaction');
-            // FIX: Define GLOBAL
-            const containerIds = ['income-table-container', 'expenses-table-container', 'bills-table-container', 'debt-table-container', 'savings-table-container'];
             const budgetSelect = document.getElementById('budget-select');
 
             // Wykresy
@@ -639,7 +638,6 @@
                 unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
                     if (user) {
                         currentUser = user;
-                        // Note: User settings loaded inside startApp after potential initial language set
                         await loadAllUsers();
                         startApp();
                     } else {
@@ -662,8 +660,6 @@
                     const newCatRef = categoriesRef.doc();
                     batch.set(newCatRef, cat);
                 });
-                
-                // NEW: Inject Demo Data IF this is a personal budget AND requested (Logic handled separately below, but default is empty)
                 await batch.commit();
                 return budgetRef.id;
             };
@@ -700,11 +696,8 @@
                     .where('members', 'array-contains', currentUser.uid)
                     .onSnapshot(async (snapshot) => {
                         if (snapshot.empty) {
-                            // Użyj nazwy z localUsers lub emaila
                             const userName = localUsers[currentUser.uid] || currentUser.email;
-                            // Create with demo data by default for the VERY FIRST budget
-                            const newBudgetId = await createPersonalBudget(currentUser.uid, userName);
-                            // Optional: auto-inject demo data here if desired, but keeping it manual via button is safer
+                            await createPersonalBudget(currentUser.uid, userName);
                             return; 
                         }
                         userBudgets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -741,7 +734,6 @@
                 }));
                 listeners.push(budgetRef.onSnapshot(doc => {
                     if (!doc.exists) {
-                         // Budget deleted externally?
                          currentBudgetId = null;
                          return;
                     }
@@ -762,7 +754,6 @@
                 }
             };
             
-            // NEW: Manual Force Seed & Load Demo Data
             document.getElementById('force-seed-btn').addEventListener('click', async () => {
                  if(confirm("Czy na pewno chcesz nadpisać kategorie?")) {
                      await seedDefaultCategories(currentBudgetId);
@@ -770,9 +761,7 @@
                  }
             });
             
-            // Manual trigger for demo data if needed (attached to button in Budget Manager)
             document.getElementById('load-demo-data-btn').addEventListener('click', async () => {
-                // NEW: Permission check - only allow for specific email
                 if(currentUser.email !== 'mwojciechowski808@gmail.com') {
                     alert("Brak uprawnień do tej operacji.");
                     return;
@@ -789,11 +778,9 @@
                     ];
                     const batch = db.batch();
                      
-                     // Refresh categories map
                      const cats = localCategories;
                      
                      demoTransactions.forEach(dt => {
-                         // Find category
                          let targetCatName = '';
                          if(dt.description === 'Wypłata 1') targetCatName = 'Wypłata';
                          else if(dt.description === 'Miesięczny czynsz') targetCatName = 'Czynsz/Kredyt';
@@ -819,7 +806,7 @@
                 }
             });
 
-            // === 4. LOGIKA OBLICZEŃ (Zmieniona dla filtru użytkownika) ===
+            // === 4. LOGIKA OBLICZEŃ ===
             const getBudgetedAmount = (catId) => localMonthlyBudgets[currentMonthKey]?.[catId] || 0;
 
             const calculateAll = () => {
@@ -985,7 +972,6 @@
                 document.getElementById('trans-date').valueAsDate = new Date();
                 const monthSelect = document.getElementById('month-select');
                 const yearSelect = document.getElementById('year-select');
-                // FIX: Ensure month names are array
                 const months = i18n('monthNames');
                 const monthList = Array.isArray(months) ? months : Object.values(months);
 
