@@ -88,7 +88,7 @@
     <div id="auth-container" class="fixed inset-0 bg-gray-900 z-50 flex items-center justify-center p-4">
         <div class="w-full max-w-md">
             
-            <!-- NEW: Language & Currency on Login Screen -->
+            <!-- Language & Currency on Login Screen -->
             <div class="flex justify-center gap-4 mb-6">
                  <div class="flex items-center space-x-1 bg-gray-800 p-1 rounded-lg">
                     <button id="auth-lang-pl" class="settings-btn active">🇵🇱</button>
@@ -154,7 +154,7 @@
         <!-- HEADER -->
         <header class="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-2">
-                <select id="budget-select" class="bg-gray-900 text-white text-2xl sm:text-3xl font-bold border-0 focus:ring-0 p-0 pr-8">
+                <select id="budget-select" class="bg-gray-900 text-white text-2xl sm:text-3xl font-bold border-0 focus:ring-0 p-0 pr-8 cursor-pointer hover:text-brand-teal transition-colors">
                     <!-- Budżety ładowane z JS -->
                 </select>
             </div>
@@ -623,8 +623,8 @@
                 });
             };
 
-            const createPersonalBudget = async (userId, userName) => {
-                const budgetName = `${i18n('personalBudget')} - ${userName}`;
+            const createPersonalBudget = async (userId, userName, nameOverride) => {
+                const budgetName = nameOverride || `${i18n('personalBudget')} - ${userName}`;
                 const budgetRef = await db.collection('budgets').add({
                     name: budgetName, members: [userId], owner: userId
                 });
@@ -996,7 +996,12 @@
             document.getElementById('delete-budget-btn').addEventListener('click', async () => {
                 if(confirm(i18n('confirmDeleteBudget'))) {
                     try {
+                        const batch = db.batch();
+                        // Na kliencie nie możemy usunąć kolekcji rekurencyjnie, więc usuwamy tylko to co mamy załadowane lokalnie w cache 
+                        // lub po prostu usuwamy dokument budżetu i liczymy, że backend (jeśli byłby) posprząta.
+                        // Dla bezpieczeństwa klienta: usuwamy dokument budżetu. Subkolekcje staną się sierotami (standard Firestore).
                         await db.collection('budgets').doc(currentBudgetId).delete();
+                        // Odświeżenie listy budżetów nastąpi automatycznie przez listener.
                         hideModal('budget-manager-modal');
                     } catch (e) {
                         console.error(e);
