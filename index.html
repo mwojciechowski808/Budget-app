@@ -80,15 +80,9 @@
 </head>
 <body class="bg-gray-900 text-gray-200 font-sans p-4 sm:p-8 antialiased">
 
-    <!-- 
-      ============================================
-      EKRAN LOGOWANIA
-      ============================================
-    -->
+    <!-- EKRAN LOGOWANIA -->
     <div id="auth-container" class="fixed inset-0 bg-gray-900 z-50 flex items-center justify-center p-4">
         <div class="w-full max-w-md">
-            
-            <!-- Language & Currency on Login Screen -->
             <div class="flex justify-center gap-4 mb-6">
                  <div class="flex items-center space-x-1 bg-gray-800 p-1 rounded-lg">
                     <button id="auth-lang-pl" class="settings-btn active">🇵🇱</button>
@@ -99,11 +93,8 @@
                     <button id="auth-curr-eur" class="settings-btn">EUR</button>
                 </div>
             </div>
-
             <h2 class="text-3xl font-bold text-white text-center mb-6" data-i18n-key="welcome">Witaj w Budżecie Online</h2>
-            
             <div class="bg-gray-800 p-8 rounded-2xl shadow-lg">
-                <!-- Login Form -->
                 <form id="login-form" class="space-y-4 mb-4">
                     <h3 class="text-xl font-semibold text-white" data-i18n-key="login">Zaloguj się</h3>
                     <div>
@@ -115,17 +106,10 @@
                         <input type="password" id="login-password" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
                     </div>
                     <div class="flex flex-col gap-2">
-                        <button type="submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="loginBtn">
-                            Zaloguj się
-                        </button>
-                        <!-- Forgot Password Button -->
-                        <button type="button" id="forgot-password-btn" class="text-sm text-brand-teal hover:text-teal-400 mt-1" data-i18n-key="forgotPassword">
-                            Zapomniałeś hasła?
-                        </button>
+                        <button type="submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="loginBtn">Zaloguj się</button>
+                        <button type="button" id="forgot-password-btn" class="text-sm text-brand-teal hover:text-teal-400 mt-1" data-i18n-key="forgotPassword">Zapomniałeś hasła?</button>
                     </div>
                 </form>
-                
-                <!-- Register Form -->
                 <form id="register-form" class="space-y-4">
                     <h3 class="text-xl font-semibold text-white" data-i18n-key="register">Lub utwórz nowe konto</h3>
                     <div>
@@ -140,32 +124,20 @@
                         <label for="register-password" class="block text-sm font-medium text-gray-300" data-i18n-key="password">Hasło</label>
                         <input type="password" id="register-password" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
                     </div>
-                    <button type="submit" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="registerBtn">
-                        Zarejestruj się
-                    </button>
+                    <button type="submit" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="registerBtn">Zarejestruj się</button>
                 </form>
-                
                 <p id="auth-error" class="text-red-400 text-sm mt-4 text-center hidden"></p>
                 <p id="auth-success" class="text-teal-400 text-sm mt-4 text-center hidden"></p>
             </div>
         </div>
     </div>
 
-
-    <!-- 
-      ============================================
-      GŁÓWNA APLIKACJA
-      ============================================
-    -->
+    <!-- GŁÓWNA APLIKACJA -->
     <div id="app-container" class="max-w-7xl mx-auto hidden">
-        <!-- HEADER -->
         <header class="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-2">
-                <select id="budget-select" class="bg-gray-900 text-white text-2xl sm:text-3xl font-bold border-0 focus:ring-0 p-0 pr-8 cursor-pointer hover:text-brand-teal transition-colors">
-                    <!-- Budżety ładowane z JS -->
-                </select>
+                <select id="budget-select" class="bg-gray-900 text-white text-2xl sm:text-3xl font-bold border-0 focus:ring-0 p-0 pr-8 cursor-pointer hover:text-brand-teal transition-colors"></select>
             </div>
-            
             <div class="flex flex-wrap justify-center sm:justify-end items-center gap-2">
                 <div class="flex items-center space-x-1 bg-gray-800 p-1 rounded-lg">
                     <button id="lang-pl" class="settings-btn" title="Zmień język na polski" data-i18n-key="langPlTooltip">🇵🇱</button>
@@ -175,79 +147,49 @@
                     <button id="curr-pln" class="settings-btn" title="Zmień walutę na PLN" data-i18n-key="currPlnTooltip">PLN</button>
                     <button id="curr-eur" class="settings-btn" title="Change currency to EUR" data-i18n-key="currEurTooltip">EUR</button>
                 </div>
-
                 <select id="filter-user-select" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-brand-teal focus:border-brand-teal p-2.5"></select>
                 <select id="month-select" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-brand-teal focus:border-brand-teal p-2.5"></select>
                 <select id="year-select" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-brand-teal focus:border-brand-teal p-2.5"></select>
-                
-                <button id="logout-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2.5 px-4 rounded-lg shadow transition duration-200" data-i18n-key="logout">
-                    Wyloguj
-                </button>
+                <button id="logout-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2.5 px-4 rounded-lg shadow transition duration-200" data-i18n-key="logout">Wyloguj</button>
             </div>
         </header>
 
-        <!-- MAIN DASHBOARD GRID -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            <!-- === LEWA KOLUMNA === -->
             <div class="lg:col-span-2 space-y-6">
-                
-                <!-- KARTY PODSUMOWANIA -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
                         <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="leftToSpend">Pozostało do wydania</h2>
                         <p id="summary-left-to-spend" class="text-4xl font-bold text-white">0,00 zł</p>
-                        <p class="text-sm text-gray-400 mt-2">
-                            <span id="summary-spent-so-far">0,00 zł</span> <span data-i18n-key="spentOf">wydano z</span> 
-                            <span id="summary-total-budgeted">0,00 zł</span>
-                        </p>
+                        <p class="text-sm text-gray-400 mt-2"><span id="summary-spent-so-far">0,00 zł</span> <span data-i18n-key="spentOf">wydano z</span> <span id="summary-total-budgeted">0,00 zł</span></p>
                     </div>
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
                         <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="totalIncome">Całkowity Przychód</h2>
                         <p id="summary-income-actual" class="text-4xl font-bold text-brand-teal">0,00 zł</p>
-                        <p class="text-sm text-gray-400 mt-2">
-                            <span data-i18n-key="budgeted">Zabudżetowano</span>: <span id="summary-income-budgeted">0,00 zł</span>
-                        </p>
+                        <p class="text-sm text-gray-400 mt-2"><span data-i18n-key="budgeted">Zabudżetowano</span>: <span id="summary-income-budgeted">0,00 zł</span></p>
                     </div>
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
                         <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="totalExpenses">Całkowite Wydatki</h2>
                         <p id="summary-expenses-actual" class="text-4xl font-bold text-brand-pink">0,00 zł</p>
-                        <p class="text-sm text-gray-400 mt-2">
-                            <span data-i18n-key="budgeted">Zabudżetowano</span>: <span id="summary-expenses-budgeted">0,00 zł</span>
-                        </p>
+                        <p class="text-sm text-gray-400 mt-2"><span data-i18n-key="budgeted">Zabudżetowano</span>: <span id="summary-expenses-budgeted">0,00 zł</span></p>
                     </div>
                 </div>
-
-                <!-- WYKRESY -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg h-[400px] flex flex-col">
                         <h2 class="text-lg font-semibold text-white mb-4" data-i18n-key="spendingAnalysis">Analiza Wydatków</h2>
-                        <div class="relative flex-grow h-full">
-                            <canvas id="spendingDoughnutChart"></canvas>
-                        </div>
+                        <div class="relative flex-grow h-full"><canvas id="spendingDoughnutChart"></canvas></div>
                     </div>
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg h-[400px] flex flex-col">
                         <h2 class="text-lg font-semibold text-white mb-4" data-i18n-key="budgetVsSpent">Budżet vs. Wydatki (Wydatki)</h2>
-                        <div class="relative flex-grow h-full">
-                            <canvas id="budgetBarChart"></canvas>
-                        </div>
+                        <div class="relative flex-grow h-full"><canvas id="budgetBarChart"></canvas></div>
                     </div>
                 </div>
-
-                <!-- KATEGORIE BUDŻETOWE -->
                 <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                         <h2 class="text-lg font-semibold text-white" data-i18n-key="budgetCategories">Kategorie Budżetowe</h2>
                         <div class="flex flex-wrap gap-2 justify-center">
-                            <button id="manage-budget-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="manageBudget">
-                                Zarządzaj Budżetem
-                            </button>
-                            <button id="yearly-summary-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="yearlySummary">
-                                Podsumowanie Roczne
-                            </button>
-                            <button id="manage-categories-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="manageCategories">
-                                Zarządzaj Kategoriami
-                            </button>
+                            <button id="manage-budget-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="manageBudget">Zarządzaj Budżetem</button>
+                            <button id="yearly-summary-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="yearlySummary">Podsumowanie Roczne</button>
+                            <button id="manage-categories-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="manageCategories">Zarządzaj Kategoriami</button>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 xl:grid-cols-2 gap-x-8 gap-y-6">
@@ -258,10 +200,7 @@
                         <div id="savings-table-container"></div>
                     </div>
                 </div>
-
             </div>
-
-            <!-- === PRAWA KOLUMNA === -->
             <div class="lg:col-span-1 space-y-6">
                 <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
                     <h2 class="text-lg font-semibold text-white mb-4" data-i18n-key="recentTransactions">Ostatnie Transakcje</h2>
@@ -273,20 +212,11 @@
         </div>
     </div>
 
-    <!-- FAB -->
     <button id="fab-add-transaction" class="fab hidden" title="Dodaj Transakcję">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
     </button>
 
-    <!-- 
-      ============================================
-      MODALE
-      ============================================
-    -->
-
-    <!-- Modal Dodawania Transakcji -->
+    <!-- MODALE -->
     <div id="transaction-modal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
         <div class="modal-content bg-gray-800 w-full max-w-lg rounded-2xl shadow-lg p-6 max-h-[90vh] flex flex-col transform scale-95 opacity-0">
             <div class="flex justify-between items-center mb-4">
@@ -311,26 +241,18 @@
                     <label for="trans-date" class="block text-sm font-medium text-gray-300" data-i18n-key="date">Data</label>
                     <input type="date" id="trans-date" name="trans-date" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
                 </div>
-                <button type="submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="addTransactionBtn">
-                    Dodaj Transakcję
-                </button>
+                <button type="submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="addTransactionBtn">Dodaj Transakcję</button>
             </form>
         </div>
     </div>
 
-    <!-- Modal Zarządzania Kategoriami -->
     <div id="category-manager-modal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
         <div class="modal-content bg-gray-800 w-full max-w-lg rounded-2xl shadow-lg p-6 max-h-[90vh] flex flex-col transform scale-95 opacity-0">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold text-white" data-i18n-key="manageCategoriesTitle">Zarządzaj Kategoriami</h2>
                 <button id="close-category-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
             </div>
-            <div class="mb-4">
-                <!-- FIX BUTTON -->
-                <button id="force-seed-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg shadow mb-4">
-                    Przywróć Domyślne Kategorie (Naprawa)
-                </button>
-            </div>
+            <div class="mb-4"><button id="force-seed-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg shadow mb-4">Przywróć Domyślne Kategorie (Naprawa)</button></div>
             <form id="category-form" class="space-y-4 p-4 border border-gray-700 rounded-lg mb-4">
                  <input type="hidden" id="cat-form-id">
                 <div>
@@ -347,25 +269,18 @@
                         <select id="cat-form-type" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal"></select>
                     </div>
                 </div>
-                <button type="submit" id="cat-form-submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="addCategoryBtn">
-                    Dodaj Kategorię
-                </button>
-                <button type="button" id="cat-form-cancel" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200 hidden" data-i18n-key="cancelEditBtn">
-                    Anuluj Edycję
-                </button>
+                <button type="submit" id="cat-form-submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="addCategoryBtn">Dodaj Kategorię</button>
+                <button type="button" id="cat-form-cancel" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200 hidden" data-i18n-key="cancelEditBtn">Anuluj Edycję</button>
             </form>
             <div id="category-manager-list" class="space-y-2 overflow-y-auto pr-2"></div>
         </div>
     </div>
 
-    <!-- Modal Podsumowania Rocznego -->
     <div id="yearly-summary-modal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
         <div class="modal-content bg-gray-800 w-full max-w-3xl rounded-2xl shadow-lg p-6 max-h-[90vh] flex flex-col transform scale-95 opacity-0">
             <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                 <h2 class="text-xl font-semibold text-white" id="yearly-summary-title" data-i18n-key="yearlySummaryTitle">Podsumowanie Roczne</h2>
-                <button id="export-csv-btn" class="text-sm bg-brand-teal hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="exportCSV">
-                    Eksportuj CSV
-                </button>
+                <button id="export-csv-btn" class="text-sm bg-brand-teal hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="exportCSV">Eksportuj CSV</button>
                 <button id="close-yearly-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
             </div>
             <div class="overflow-y-auto pr-2">
@@ -379,22 +294,18 @@
                         </tr>
                     </thead>
                     <tbody id="yearly-summary-table-body" class="divide-y divide-gray-700"></tbody>
-                    <tfoot class="bg-gray-700 font-bold">
-                        <tr id="yearly-summary-table-footer"></tr>
-                    </tfoot>
+                    <tfoot class="bg-gray-700 font-bold"><tr id="yearly-summary-table-footer"></tr></tfoot>
                 </table>
             </div>
         </div>
     </div>
     
-    <!-- Modal Zarządzania Budżetem -->
     <div id="budget-manager-modal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
         <div class="modal-content bg-gray-800 w-full max-w-lg rounded-2xl shadow-lg p-6 max-h-[90vh] flex flex-col transform scale-95 opacity-0">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold text-white" data-i18n-key="manageBudgetTitle">Zarządzaj Budżetem</h2>
                 <button id="close-budget-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
             </div>
-            
             <form id="budget-name-form" class="space-y-2 mb-4">
                 <label for="budget-form-name" class="block text-sm font-medium text-gray-300" data-i18n-key="budgetName">Nazwa Budżetu</label>
                 <div class="flex gap-2">
@@ -402,8 +313,6 @@
                     <button type="submit" class="bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="saveBtn">Zapisz</button>
                 </div>
             </form>
-            
-            <!-- NEW: Create New Budget Form -->
             <hr class="border-gray-700 my-4">
             <h3 class="text-lg font-semibold text-white mb-2" data-i18n-key="createNewBudget">Utwórz Nowy Budżet</h3>
             <form id="create-budget-form" class="space-y-2 mb-4">
@@ -412,9 +321,7 @@
                      <button type="submit" class="bg-brand-purple hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="createBtn">Utwórz</button>
                 </div>
             </form>
-
             <hr class="border-gray-700 my-4">
-
             <h3 class="text-lg font-semibold text-white mb-2" data-i18n-key="inviteUser">Zaproś Użytkownika</h3>
             <p class="text-sm text-gray-400 mb-2" data-i18n-key="inviteUserDesc">Zaproś kogoś do współdzielenia tego budżetu. Osoba ta musi już posiadać konto w aplikacji.</p>
             <form id="invite-user-form" class="space-y-2 mb-4">
@@ -425,45 +332,26 @@
                 </div>
                 <p id="invite-message" class="text-sm mt-2 hidden"></p>
             </form>
-            
-            <!-- NEW: Load Demo Data Button (PERMISSIONED) -->
             <div id="demo-data-section" class="hidden">
                 <hr class="border-gray-700 my-4">
-                <div class="flex justify-center">
-                    <button id="load-demo-data-btn" class="text-sm bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow">
-                        Wgraj Dane z Listopada 2025
-                    </button>
-                </div>
+                <div class="flex justify-center"><button id="load-demo-data-btn" class="text-sm bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow">Wgraj Dane z Listopada 2025</button></div>
             </div>
-
             <hr class="border-gray-700 my-4">
-
             <h3 class="text-lg font-semibold text-white mb-2" data-i18n-key="usersInBudget">Użytkownicy w tym budżecie</h3>
             <div id="budget-user-list" class="space-y-2 overflow-y-auto pr-2 max-h-32"></div>
-            
-            <!-- NEW: Delete Budget Section -->
             <hr class="border-gray-700 my-4">
             <div class="bg-red-900/20 p-4 rounded-lg border border-red-900">
                 <h3 class="text-lg font-semibold text-red-500 mb-2" data-i18n-key="dangerZone">Strefa Niebezpieczna</h3>
                 <p class="text-sm text-gray-400 mb-4" data-i18n-key="deleteBudgetDesc">Usunięcie budżetu jest nieodwracalne. Wszystkie transakcje zostaną utracone.</p>
-                <button id="delete-budget-btn" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="deleteBudgetBtn">
-                    Usuń ten Budżet
-                </button>
+                <button id="delete-budget-btn" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="deleteBudgetBtn">Usuń ten Budżet</button>
             </div>
         </div>
     </div>
 
-
-    <!-- 
-      ============================================
-      LOGIKA JAVASCRIPT
-      ============================================
-    -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
             // === 0. KONFIGURACJA FIREBASE ===
-            // !! WAŻNE !! - To jest Twój klucz, który mi podałeś wcześniej.
             const firebaseConfig = {
                 apiKey: "AIzaSyALc9fMeTrLKHGrImqYumKpq0QbuUkJ0Yc",
                 authDomain: "budgeting-app-25c25.firebaseapp.com",
@@ -498,7 +386,6 @@
             let localTransactions = [];
             let localCategories = [];
             let localMonthlyBudgets = {};
-            
             // FIXED: Define GLOBAL containerIds once, at the top
             const containerIds = ['income-table-container', 'expenses-table-container', 'bills-table-container', 'debt-table-container', 'savings-table-container'];
 
@@ -516,308 +403,91 @@
             // Wykresy
             let spendingDoughnutChart, budgetBarChart;
             
-            // NEW: Extended Pie Chart Colors
-            const pieColors = [
-                '#14b8a6', '#ec4899', '#a855f7', '#f59e0b', '#3b82f6', 
-                '#ef4444', '#6b7280', '#10b981', '#6366f1', '#8b5cf6',
-                '#d946ef', '#f43f5e', '#f97316', '#84cc16', '#06b6d4',
-                '#0ea5e9', '#22d3ee', '#c084fc', '#fb7185', '#fda4af'
-            ];
+            const pieColors = ['#14b8a6', '#ec4899', '#a855f7', '#f59e0b', '#3b82f6', '#ef4444', '#6b7280', '#10b981', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#f97316', '#84cc16', '#06b6d4', '#0ea5e9', '#22d3ee', '#c084fc', '#fb7185', '#fda4af'];
 
-            // NEW: Category Dictionaries (PL/EN)
-            const defaultCategoriesPL = [
-                { name: 'Wypłata', type: 'Income', budgeted: 4500 }, { name: 'Freelance', type: 'Income', budgeted: 300 },
-                { name: 'Zakupy spożywcze', type: 'Expense', budgeted: 600 }, { name: 'Restauracje', type: 'Expense', budgeted: 250 },
-                { name: 'Paliwo', type: 'Expense', budgeted: 150 }, { name: 'Rozrywka', type: 'Expense', budgeted: 200 },
-                { name: 'Zakupy', type: 'Expense', budgeted: 150 }, { name: 'Czynsz/Kredyt', type: 'Bill', budgeted: 1800 },
-                { name: 'Media', type: 'Bill', budgeted: 200 }, { name: 'Internet', type: 'Bill', budgeted: 60 },
-                { name: 'Telefon', type: 'Bill', budgeted: 80 }, { name: 'Ubezp. samochodu', type: 'Bill', budgeted: 120 },
-                { name: 'Kredyt studencki', type: 'Debt', budgeted: 150 }, { name: 'Karta kredytowa', type: 'Debt', budgeted: 100 },
-                { name: 'Fundusz awaryjny', type: 'Savings', budgeted: 300 }, { name: 'Fundusz wakacyjny', type: 'Savings', budgeted: 100 },
-            ];
-            const defaultCategoriesEN = [
-                { name: 'Paycheck', type: 'Income', budgeted: 4500 }, { name: 'Freelance', type: 'Income', budgeted: 300 },
-                { name: 'Groceries', type: 'Expense', budgeted: 600 }, { name: 'Restaurants', type: 'Expense', budgeted: 250 },
-                { name: 'Gas/Fuel', type: 'Expense', budgeted: 150 }, { name: 'Entertainment', type: 'Expense', budgeted: 200 },
-                { name: 'Shopping', type: 'Expense', budgeted: 150 }, { name: 'Rent/Mortgage', type: 'Bill', budgeted: 1800 },
-                { name: 'Utilities', type: 'Bill', budgeted: 200 }, { name: 'Internet', type: 'Bill', budgeted: 60 },
-                { name: 'Phone', type: 'Bill', budgeted: 80 }, { name: 'Car Insurance', type: 'Bill', budgeted: 120 },
-                { name: 'Student Loan', type: 'Debt', budgeted: 150 }, { name: 'Credit Card', type: 'Debt', budgeted: 100 },
-                { name: 'Emergency Fund', type: 'Savings', budgeted: 300 }, { name: 'Vacation Fund', type: 'Savings', budgeted: 100 },
-            ];
+            const defaultCategoriesPL = [{ name: 'Wypłata', type: 'Income', budgeted: 4500 }, { name: 'Freelance', type: 'Income', budgeted: 300 }, { name: 'Zakupy spożywcze', type: 'Expense', budgeted: 600 }, { name: 'Restauracje', type: 'Expense', budgeted: 250 }, { name: 'Paliwo', type: 'Expense', budgeted: 150 }, { name: 'Rozrywka', type: 'Expense', budgeted: 200 }, { name: 'Zakupy', type: 'Expense', budgeted: 150 }, { name: 'Czynsz/Kredyt', type: 'Bill', budgeted: 1800 }, { name: 'Media', type: 'Bill', budgeted: 200 }, { name: 'Internet', type: 'Bill', budgeted: 60 }, { name: 'Telefon', type: 'Bill', budgeted: 80 }, { name: 'Ubezp. samochodu', type: 'Bill', budgeted: 120 }, { name: 'Kredyt studencki', type: 'Debt', budgeted: 150 }, { name: 'Karta kredytowa', type: 'Debt', budgeted: 100 }, { name: 'Fundusz awaryjny', type: 'Savings', budgeted: 300 }, { name: 'Fundusz wakacyjny', type: 'Savings', budgeted: 100 }];
+            const defaultCategoriesEN = [{ name: 'Paycheck', type: 'Income', budgeted: 4500 }, { name: 'Freelance', type: 'Income', budgeted: 300 }, { name: 'Groceries', type: 'Expense', budgeted: 600 }, { name: 'Restaurants', type: 'Expense', budgeted: 250 }, { name: 'Gas/Fuel', type: 'Expense', budgeted: 150 }, { name: 'Entertainment', type: 'Expense', budgeted: 200 }, { name: 'Shopping', type: 'Expense', budgeted: 150 }, { name: 'Rent/Mortgage', type: 'Bill', budgeted: 1800 }, { name: 'Utilities', type: 'Bill', budgeted: 200 }, { name: 'Internet', type: 'Bill', budgeted: 60 }, { name: 'Phone', type: 'Bill', budgeted: 80 }, { name: 'Car Insurance', type: 'Bill', budgeted: 120 }, { name: 'Student Loan', type: 'Debt', budgeted: 150 }, { name: 'Credit Card', type: 'Debt', budgeted: 100 }, { name: 'Emergency Fund', type: 'Savings', budgeted: 300 }, { name: 'Vacation Fund', type: 'Savings', budgeted: 100 }];
             
-            // Słownik Tłumaczeń
             const translations = {
-                pl: {
-                    welcome: "Witaj w Budżecie Online", login: "Zaloguj się", register: "Lub utwórz nowe konto", email: "Email", password: "Hasło", name: "Twoje imię", loginBtn: "Zaloguj się", registerBtn: "Zarejestruj się", logout: "Wyloguj",
-                    authErrorLogin: "Logowanie nie powiodło się. Sprawdź email i hasło.", authErrorRegister: "Rejestracja nie powiodła się. Hasło min. 6 znaków.",
-                    exportCSV: "Eksportuj CSV", exportSummary: "Podsumowanie Roczne CSV", exportTransactions: "Transakcje (Roczne) CSV", defaultBudget: "Domyślny Budżet",
-                    dashboardTitle: 'Miesięczny Panel Budżetu', leftToSpend: 'Pozostało do wydania', totalIncome: 'Całkowity Przychód', totalExpenses: 'Całkowite Wydatki',
-                    spendingAnalysis: 'Analiza Wydatków', budgetVsSpent: 'Budżet vs. Wydatki', budgetCategories: 'Kategorie Budżetowe', addTransaction: 'Dodaj Transakcję',
-                    recentTransactions: 'Ostatnie Transakcje', manageBudget: 'Zarządzaj Budżetem', yearlySummary: 'Podsumowanie Roczne', manageCategories: 'Zarządzaj Kategoriami',
-                    addTransactionBtn: 'Dodaj Transakcję', description: 'Opis', descriptionPlaceholder: 'np. Zakupy spożywcze', amount: 'Kwota', category: 'Kategoria', selectCategory: 'Wybierz kategorię...',
-                    date: 'Data', noTransactions: 'Nie dodano jeszcze żadnych transakcji.', spentOf: 'wydano z', budgeted: 'Zabudżetowano', manageCategoriesTitle: 'Zarządzaj Kategoriami', manageBudgetTitle: 'Zarządzaj Budżetem',
-                    newCategoryPlaceholder: 'np. Nowa Kategoria', addCategoryBtn: 'Dodaj Kategorię', cancelEditBtn: 'Anuluj Edycję', saveChangesBtn: 'Zapisz Zmiany', edit: 'Edytuj', delete: 'Usuń',
-                    yearlySummaryTitle: 'Podsumowanie Roczne', month: 'Miesiąc', savings: 'Oszczędności', total: 'ŁĄCZNIE', transactionAdded: 'Transakcja dodana pomyślnie!', transactionDeleted: 'Transakcja usunięta.',
-                    budgetUpdated: 'Budżet zaktualizowany.', invalidAmount: 'Błędna kwota.', categoryAdded: 'Kategoria dodana.', categoryUpdated: 'Kategoria zaktualizowana.', categoryDeleted: 'Kategoria usunięta.',
-                    categoryDeleteError: 'Nie można usunąć kategorii, ponieważ ma transakcje.', fillAllFields: 'Wypełnij wszystkie pola.', invalidCategory: 'Wybierz kategorię.', newMonthSheet: 'Nowy miesiąc utworzony.',
-                    confirmDelete: 'Czy na pewno chcesz usunąć?', chartBudgeted: 'Zabudżetowano', chartSpent: 'Wydano', catTypeIncome: 'Przychód', catTypeExpense: 'Wydatek', catTypeBill: 'Rachunek', catTypeDebt: 'Dług', catTypeSavings: 'Oszczędności',
-                    catGroupIncome: 'Przychody', catGroupExpense: 'Wydatki', catGroupBill: 'Rachunki', catGroupDebt: 'Długi', catGroupSavings: 'Oszczędności',
-                    monthNames: ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"],
-                    unknownUser: 'Nieznany', deletedCategory: 'Usunięta Kategoria', transactionSaveError: 'Błąd zapisu.', clickToEditBudget: 'Kliknij, aby edytować', deleteTransactionTooltip: 'Usuń transakcję',
-                    budgetFor: 'Nowy budżet dla', allUsers: 'Wszyscy Użytkownicy', langPlTooltip: 'Zmień na polski', langEnTooltip: 'Switch to English', currPlnTooltip: 'Zmień na PLN', currEurTooltip: 'Change to EUR',
-                    personalBudget: 'Budżet Osobisty', budgetName: 'Nazwa Budżetu', saveBtn: 'Zapisz', inviteUser: 'Zaproś Użytkownika', inviteUserDesc: 'Zaproś kogoś do współdzielenia budżetu.', inviteBtn: 'Zaproś',
-                    usersInBudget: 'Użytkownicy w tym budżecie', inviteSuccess: 'Użytkownik zaproszony!', inviteErrorUserNotFound: 'Użytkownik nieznaleziony.', inviteErrorAlreadyMember: 'Użytkownik już jest w budżecie.', inviteErrorGeneric: 'Błąd zapraszania.', budgetNameUpdated: 'Nazwa zaktualizowana.',
-                    dangerZone: 'Strefa Niebezpieczna', deleteBudgetDesc: 'Usunięcie budżetu jest trwałe. Stracisz wszystkie dane.', deleteBudgetBtn: 'Usuń ten Budżet', confirmDeleteBudget: 'Czy na pewno chcesz usunąć CAŁY budżet i wszystkie dane? Tego nie można cofnąć.',
-                    createNewBudget: 'Utwórz Nowy Budżet', newBudgetPlaceholder: 'np. Wakacje 2025', createBtn: 'Utwórz', budgetCreated: 'Budżet utworzony!',
-                    forgotPassword: 'Zapomniałeś hasła?', forgotPasswordSuccess: 'E-mail resetujący wysłany!'
-                },
-                en: {
-                    welcome: "Welcome to Budget Online", login: "Log In", register: "Or Create New Account", email: "Email", password: "Password", name: "Your Name", loginBtn: "Log In", registerBtn: "Register", logout: "Logout",
-                    authErrorLogin: "Login failed.", authErrorRegister: "Registration failed.", exportCSV: "Export CSV", exportSummary: "Yearly Summary CSV", exportTransactions: "Transactions CSV", defaultBudget: "Default Budget",
-                    dashboardTitle: 'Monthly Budget Dashboard', leftToSpend: 'Amount Left to Spend', totalIncome: 'Total Income', totalExpenses: 'Total Expenses', spendingAnalysis: 'Spending Analysis', budgetVsSpent: 'Budget vs. Spent',
-                    budgetCategories: 'Budget Categories', addTransaction: 'Add Transaction', recentTransactions: 'Recent Transactions', manageBudget: 'Manage Budget', yearlySummary: 'Yearly Summary', manageCategories: 'Manage Categories',
-                    addTransactionBtn: 'Add Transaction', description: 'Description', descriptionPlaceholder: 'e.g., Groceries', amount: 'Amount', category: 'Category', selectCategory: 'Select a category...',
-                    date: 'Date', noTransactions: 'No transactions added yet.', spentOf: 'spent of', budgeted: 'Budgeted', manageCategoriesTitle: 'Manage Categories', manageBudgetTitle: 'Manage Budget',
-                    newCategoryPlaceholder: 'e.g., New Category', addCategoryBtn: 'Add Category', cancelEditBtn: 'Cancel Edit', saveChangesBtn: 'Save Changes', edit: 'Edit', delete: 'Delete',
-                    yearlySummaryTitle: 'Yearly Summary', month: 'Month', savings: 'Savings', total: 'TOTAL', transactionAdded: 'Transaction added!', transactionDeleted: 'Transaction deleted.',
-                    budgetUpdated: 'Budget updated.', invalidAmount: 'Invalid amount.', categoryAdded: 'Category added.', categoryUpdated: 'Category updated.', categoryDeleted: 'Category deleted.',
-                    categoryDeleteError: 'Cannot delete used category.', fillAllFields: 'Fill all fields.', invalidCategory: 'Select category.', newMonthSheet: 'New month created.',
-                    confirmDelete: 'Are you sure?', chartBudgeted: 'Budgeted', chartSpent: 'Spent', catTypeIncome: 'Income', catTypeExpense: 'Expense', catTypeBill: 'Bill', catTypeDebt: 'Debt', catTypeSavings: 'Savings',
-                    catGroupIncome: 'Income', catGroupExpense: 'Expenses', catGroupBill: 'Bills', catGroupDebt: 'Debt', catGroupSavings: 'Savings',
-                    monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-                    unknownUser: 'Unknown', deletedCategory: 'Deleted Category', transactionSaveError: 'Save error.', clickToEditBudget: 'Click to edit', deleteTransactionTooltip: 'Delete',
-                    budgetFor: 'New budget for', allUsers: 'All Users', langPlTooltip: 'Switch to Polish', langEnTooltip: 'Switch to English', currPlnTooltip: 'Switch to PLN', currEurTooltip: 'Switch to EUR',
-                    personalBudget: 'Personal Budget', budgetName: 'Budget Name', saveBtn: 'Save', inviteUser: 'Invite User', inviteUserDesc: 'Invite someone to share this budget.', inviteBtn: 'Invite',
-                    usersInBudget: 'Users in this budget', inviteSuccess: 'User invited!', inviteErrorUserNotFound: 'User not found.', inviteErrorAlreadyMember: 'User already member.', inviteErrorGeneric: 'Error inviting user.', budgetNameUpdated: 'Name updated.',
-                    dangerZone: 'Danger Zone', deleteBudgetDesc: 'Deleting a budget is permanent. All data will be lost.', deleteBudgetBtn: 'Delete this Budget', confirmDeleteBudget: 'Are you sure you want to delete the ENTIRE budget? This cannot be undone.',
-                    createNewBudget: 'Create New Budget', newBudgetPlaceholder: 'e.g., Vacation 2025', createBtn: 'Create', budgetCreated: 'Budget created!',
-                    forgotPassword: 'Forgot Password?', forgotPasswordSuccess: 'Reset email sent!'
-                }
+                pl: { welcome: "Witaj w Budżecie Online", login: "Zaloguj się", register: "Lub utwórz nowe konto", email: "Email", password: "Hasło", name: "Twoje imię", loginBtn: "Zaloguj się", registerBtn: "Zarejestruj się", logout: "Wyloguj", authErrorLogin: "Logowanie nie powiodło się. Sprawdź email i hasło.", authErrorRegister: "Rejestracja nie powiodła się. Hasło min. 6 znaków.", exportCSV: "Eksportuj CSV", exportSummary: "Podsumowanie Roczne CSV", exportTransactions: "Transakcje (Roczne) CSV", defaultBudget: "Domyślny Budżet", dashboardTitle: 'Miesięczny Panel Budżetu', leftToSpend: 'Pozostało do wydania', totalIncome: 'Całkowity Przychód', totalExpenses: 'Całkowite Wydatki', spendingAnalysis: 'Analiza Wydatków', budgetVsSpent: 'Budżet vs. Wydatki', budgetCategories: 'Kategorie Budżetowe', addTransaction: 'Dodaj Transakcję', recentTransactions: 'Ostatnie Transakcje', manageBudget: 'Zarządzaj Budżetem', yearlySummary: 'Podsumowanie Roczne', manageCategories: 'Zarządzaj Kategoriami', addTransactionBtn: 'Dodaj Transakcję', description: 'Opis', descriptionPlaceholder: 'np. Zakupy spożywcze', amount: 'Kwota', category: 'Kategoria', selectCategory: 'Wybierz kategorię...', date: 'Data', noTransactions: 'Nie dodano jeszcze żadnych transakcji.', spentOf: 'wydano z', budgeted: 'Zabudżetowano', manageCategoriesTitle: 'Zarządzaj Kategoriami', manageBudgetTitle: 'Zarządzaj Budżetem', newCategoryPlaceholder: 'np. Nowa Kategoria', addCategoryBtn: 'Dodaj Kategorię', cancelEditBtn: 'Anuluj Edycję', saveChangesBtn: 'Zapisz Zmiany', edit: 'Edytuj', delete: 'Usuń', yearlySummaryTitle: 'Podsumowanie Roczne', month: 'Miesiąc', savings: 'Oszczędności', total: 'ŁĄCZNIE', transactionAdded: 'Transakcja dodana pomyślnie!', transactionDeleted: 'Transakcja usunięta.', budgetUpdated: 'Budżet zaktualizowany.', invalidAmount: 'Błędna kwota.', categoryAdded: 'Kategoria dodana.', categoryUpdated: 'Kategoria zaktualizowana.', categoryDeleted: 'Kategoria usunięta.', categoryDeleteError: 'Nie można usunąć kategorii, ponieważ ma transakcje.', fillAllFields: 'Wypełnij wszystkie pola.', invalidCategory: 'Wybierz kategorię.', newMonthSheet: 'Nowy miesiąc utworzony.', confirmDelete: 'Czy na pewno chcesz usunąć?', chartBudgeted: 'Zabudżetowano', chartSpent: 'Wydano', catTypeIncome: 'Przychód', catTypeExpense: 'Wydatek', catTypeBill: 'Rachunek', catTypeDebt: 'Dług', catTypeSavings: 'Oszczędności', catGroupIncome: 'Przychody', catGroupExpense: 'Wydatki', catGroupBill: 'Rachunki', catGroupDebt: 'Długi', catGroupSavings: 'Oszczędności', monthNames: ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"], unknownUser: 'Nieznany', deletedCategory: 'Usunięta Kategoria', transactionSaveError: 'Błąd zapisu.', clickToEditBudget: 'Kliknij, aby edytować', deleteTransactionTooltip: 'Usuń transakcję', budgetFor: 'Nowy budżet dla', allUsers: 'Wszyscy Użytkownicy', langPlTooltip: 'Zmień na polski', langEnTooltip: 'Switch to English', currPlnTooltip: 'Zmień na PLN', currEurTooltip: 'Change to EUR', personalBudget: 'Budżet Osobisty', budgetName: 'Nazwa Budżetu', saveBtn: 'Zapisz', inviteUser: 'Zaproś Użytkownika', inviteUserDesc: 'Zaproś kogoś do współdzielenia budżetu.', inviteBtn: 'Zaproś', usersInBudget: 'Użytkownicy w tym budżecie', inviteSuccess: 'Użytkownik zaproszony!', inviteErrorUserNotFound: 'Użytkownik nieznaleziony.', inviteErrorAlreadyMember: 'Użytkownik już jest w budżecie.', inviteErrorGeneric: 'Błąd zapraszania.', budgetNameUpdated: 'Nazwa zaktualizowana.', dangerZone: 'Strefa Niebezpieczna', deleteBudgetDesc: 'Usunięcie budżetu jest trwałe. Stracisz wszystkie dane.', deleteBudgetBtn: 'Usuń ten Budżet', confirmDeleteBudget: 'Czy na pewno chcesz usunąć CAŁY budżet i wszystkie dane? Tego nie można cofnąć.', createNewBudget: 'Utwórz Nowy Budżet', newBudgetPlaceholder: 'np. Wakacje 2025', createBtn: 'Utwórz', budgetCreated: 'Budżet utworzony!', forgotPassword: 'Zapomniałeś hasła?', forgotPasswordSuccess: 'E-mail resetujący wysłany!' },
+                en: { welcome: "Welcome to Budget Online", login: "Log In", register: "Or Create New Account", email: "Email", password: "Password", name: "Your Name", loginBtn: "Log In", registerBtn: "Register", logout: "Logout", authErrorLogin: "Login failed.", authErrorRegister: "Registration failed.", exportCSV: "Export CSV", exportSummary: "Yearly Summary CSV", exportTransactions: "Transactions CSV", defaultBudget: "Default Budget", dashboardTitle: 'Monthly Budget Dashboard', leftToSpend: 'Amount Left to Spend', totalIncome: 'Total Income', totalExpenses: 'Total Expenses', spendingAnalysis: 'Spending Analysis', budgetVsSpent: 'Budget vs. Spent', budgetCategories: 'Budget Categories', addTransaction: 'Add Transaction', recentTransactions: 'Recent Transactions', manageBudget: 'Manage Budget', yearlySummary: 'Yearly Summary', manageCategories: 'Manage Categories', addTransactionBtn: 'Add Transaction', description: 'Description', descriptionPlaceholder: 'e.g., Groceries', amount: 'Amount', category: 'Category', selectCategory: 'Select a category...', date: 'Date', noTransactions: 'No transactions added yet.', spentOf: 'spent of', budgeted: 'Budgeted', manageCategoriesTitle: 'Manage Categories', manageBudgetTitle: 'Manage Budget', newCategoryPlaceholder: 'e.g., New Category', addCategoryBtn: 'Add Category', cancelEditBtn: 'Cancel Edit', saveChangesBtn: 'Save Changes', edit: 'Edit', delete: 'Delete', yearlySummaryTitle: 'Yearly Summary', month: 'Month', savings: 'Savings', total: 'TOTAL', transactionAdded: 'Transaction added!', transactionDeleted: 'Transaction deleted.', budgetUpdated: 'Budget updated.', invalidAmount: 'Invalid amount.', categoryAdded: 'Category added.', categoryUpdated: 'Category updated.', categoryDeleted: 'Category deleted.', categoryDeleteError: 'Cannot delete used category.', fillAllFields: 'Fill all fields.', invalidCategory: 'Select category.', newMonthSheet: 'New month created.', confirmDelete: 'Are you sure?', chartBudgeted: 'Budgeted', chartSpent: 'Spent', catTypeIncome: 'Income', catTypeExpense: 'Expense', catTypeBill: 'Bill', catTypeDebt: 'Debt', catTypeSavings: 'Savings', catGroupIncome: 'Income', catGroupExpense: 'Expenses', catGroupBill: 'Bills', catGroupDebt: 'Debt', catGroupSavings: 'Savings', monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], unknownUser: 'Unknown', deletedCategory: 'Deleted Category', transactionSaveError: 'Save error.', clickToEditBudget: 'Click to edit', deleteTransactionTooltip: 'Delete', budgetFor: 'New budget for', allUsers: 'All Users', langPlTooltip: 'Switch to Polish', langEnTooltip: 'Switch to English', currPlnTooltip: 'Switch to PLN', currEurTooltip: 'Switch to EUR', personalBudget: 'Personal Budget', budgetName: 'Budget Name', saveBtn: 'Save', inviteUser: 'Invite User', inviteUserDesc: 'Invite someone to share this budget.', inviteBtn: 'Invite', usersInBudget: 'Users in this budget', inviteSuccess: 'User invited!', inviteErrorUserNotFound: 'User not found.', inviteErrorAlreadyMember: 'User already member.', inviteErrorGeneric: 'Error inviting user.', budgetNameUpdated: 'Name updated.', dangerZone: 'Danger Zone', deleteBudgetDesc: 'Deleting a budget is permanent. All data will be lost.', deleteBudgetBtn: 'Delete this Budget', confirmDeleteBudget: 'Are you sure you want to delete the ENTIRE budget? This cannot be undone.', createNewBudget: 'Create New Budget', newBudgetPlaceholder: 'e.g., Vacation 2025', createBtn: 'Create', budgetCreated: 'Budget created!', forgotPassword: 'Forgot Password?', forgotPasswordSuccess: 'Reset email sent!' }
             };
 
-            // === 2. FUNKCJE POMOCNICZE ===
-            const i18n = (key, replacements = {}) => {
-                let text = translations[currentLang][key] || key;
-                for (const [placeholder, value] of Object.entries(replacements)) { text = text.replace(`{${placeholder}}`, value); }
-                return text;
-            };
+            const i18n = (key, replacements = {}) => { let text = translations[currentLang][key] || key; for (const [placeholder, value] of Object.entries(replacements)) { text = text.replace(`{${placeholder}}`, value); } return text; };
+            const formatCurrency = (value) => { if (typeof value !== 'number') value = 0; const locale = currentLang === 'pl' ? 'pl-PL' : 'en-IE'; return new Intl.NumberFormat(locale, { style: 'currency', currency: currentCurrency }).format(value); };
+            const formatDate = (dateString) => { const locale = currentLang === 'pl' ? 'pl-PL' : 'en-GB'; return new Date(dateString).toLocaleDateString(locale); };
+            const showMessage = (key, type = 'success', replacements = {}) => { const mb = document.getElementById('message-box'); mb.textContent = i18n(key, replacements); mb.className = `p-4 text-sm rounded-lg ${type === 'success' ? 'bg-teal-100 text-teal-900' : 'bg-red-100 text-red-900'}`; mb.classList.remove('hidden'); setTimeout(() => mb.classList.add('hidden'), 3000); };
+            const showModal = (id) => { const el = document.getElementById(id); el.classList.remove('hidden'); setTimeout(() => { el.classList.remove('opacity-0'); el.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0'); }, 10); };
+            const hideModal = (id) => { const el = document.getElementById(id); el.classList.add('opacity-0'); el.querySelector('.modal-content').classList.add('scale-95', 'opacity-0'); setTimeout(() => el.classList.add('hidden'), 300); };
 
-            const formatCurrency = (value) => {
-                if (typeof value !== 'number') value = 0;
-                const locale = currentLang === 'pl' ? 'pl-PL' : 'en-IE';
-                return new Intl.NumberFormat(locale, { style: 'currency', currency: currentCurrency }).format(value);
-            };
-
-            const formatDate = (dateString) => {
-                const locale = currentLang === 'pl' ? 'pl-PL' : 'en-GB';
-                return new Date(dateString).toLocaleDateString(locale);
-            };
-
-            const showMessage = (key, type = 'success', replacements = {}) => {
-                const messageBox = document.getElementById('message-box');
-                messageBox.textContent = i18n(key, replacements);
-                messageBox.className = `p-4 text-sm rounded-lg ${type === 'success' ? 'bg-teal-100 text-teal-900' : 'bg-red-100 text-red-900'}`;
-                messageBox.classList.remove('hidden');
-                setTimeout(() => messageBox.classList.add('hidden'), 3000);
-            };
-            
-            const showModal = (id) => {
-                const el = document.getElementById(id);
-                el.classList.remove('hidden');
-                setTimeout(() => { el.classList.remove('opacity-0'); el.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0'); }, 10);
-            };
-            const hideModal = (id) => {
-                const el = document.getElementById(id);
-                el.classList.add('opacity-0');
-                el.querySelector('.modal-content').classList.add('scale-95', 'opacity-0');
-                setTimeout(() => el.classList.add('hidden'), 300);
-            };
-
-            // === 3. LOGIKA FIREBASE ===
             const initAuthListener = () => {
                 unsubscribeAuth();
                 unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
-                    if (user) {
-                        currentUser = user;
-                        // Note: User settings loaded inside startApp after potential initial language set
-                        await loadAllUsers();
-                        startApp();
-                    } else {
-                        currentUser = null;
-                        stopApp();
-                    }
+                    if (user) { currentUser = user; await loadAllUsers(); startApp(); } else { currentUser = null; stopApp(); }
                 });
             };
 
             const createPersonalBudget = async (userId, userName, nameOverride) => {
                 const budgetName = nameOverride || `${i18n('personalBudget')} - ${userName}`;
-                const budgetRef = await db.collection('budgets').add({
-                    name: budgetName, members: [userId], owner: userId
-                });
-                
+                const budgetRef = await db.collection('budgets').add({ name: budgetName, members: [userId], owner: userId });
                 const catsToUse = currentLang === 'pl' ? defaultCategoriesPL : defaultCategoriesEN;
                 const batch = db.batch();
                 const categoriesRef = budgetRef.collection('categories');
-                catsToUse.forEach(cat => {
-                    const newCatRef = categoriesRef.doc();
-                    batch.set(newCatRef, cat);
-                });
+                catsToUse.forEach(cat => batch.set(categoriesRef.doc(), cat));
                 
+                // Removed automatic seeding here to keep it clean. Use the button instead.
                 await batch.commit();
                 return budgetRef.id;
             };
 
-            const startApp = () => {
-                authContainer.classList.add('hidden');
-                appContainer.classList.remove('hidden');
-                fab.classList.remove('hidden');
-                attachUserBudgetsListener();
-                populateDateControls();
-            };
-
-            const stopApp = () => {
-                authContainer.classList.remove('hidden');
-                appContainer.classList.add('hidden');
-                fab.classList.add('hidden');
-                unsubscribeBudgetsList();
-                unsubscribeActiveBudget();
-                localTransactions = []; localCategories = []; localMonthlyBudgets = {}; localUsers = {}; userBudgets = []; currentBudgetId = null;
-            };
+            const startApp = () => { authContainer.classList.add('hidden'); appContainer.classList.remove('hidden'); fab.classList.remove('hidden'); attachUserBudgetsListener(); populateDateControls(); };
+            const stopApp = () => { authContainer.classList.remove('hidden'); appContainer.classList.add('hidden'); fab.classList.add('hidden'); unsubscribeBudgetsList(); unsubscribeActiveBudget(); localTransactions = []; localCategories = []; localMonthlyBudgets = {}; localUsers = {}; userBudgets = []; currentBudgetId = null; };
             
-            const loadAllUsers = async () => {
-                localUsers = {};
-                try {
-                    const snapshot = await db.collection('users').get();
-                    snapshot.docs.forEach(doc => localUsers[doc.id] = doc.data().name || doc.data().email);
-                    if (!localUsers[currentUser.uid]) localUsers[currentUser.uid] = currentUser.email.split('@')[0];
-                } catch (e) { console.error(e); }
-            };
+            const loadAllUsers = async () => { try { const s = await db.collection('users').get(); s.forEach(d => localUsers[d.id] = d.data().name || d.data().email); if (!localUsers[currentUser.uid]) localUsers[currentUser.uid] = currentUser.email.split('@')[0]; } catch (e) { console.error(e); } };
             
             const attachUserBudgetsListener = () => {
                 unsubscribeBudgetsList();
-                unsubscribeBudgetsList = db.collection('budgets')
-                    .where('members', 'array-contains', currentUser.uid)
-                    .onSnapshot(async (snapshot) => {
-                        if (snapshot.empty) {
-                            // Użyj nazwy z localUsers lub emaila
-                            const userName = localUsers[currentUser.uid] || currentUser.email;
-                            await createPersonalBudget(currentUser.uid, userName);
-                            return; 
-                        }
-                        userBudgets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        budgetSelect.innerHTML = '';
-                        userBudgets.forEach(budget => budgetSelect.add(new Option(budget.name, budget.id)));
-                        
-                        if (!currentBudgetId || !userBudgets.some(b => b.id === currentBudgetId)) {
-                            currentBudgetId = userBudgets[0].id;
-                        }
-                        budgetSelect.value = currentBudgetId;
-                        attachActiveBudgetListeners(currentBudgetId);
-                    });
+                unsubscribeBudgetsList = db.collection('budgets').where('members', 'array-contains', currentUser.uid).onSnapshot(async (snapshot) => {
+                    if (snapshot.empty) { const userName = localUsers[currentUser.uid] || currentUser.email; await createPersonalBudget(currentUser.uid, userName); return; }
+                    userBudgets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    budgetSelect.innerHTML = ''; userBudgets.forEach(b => budgetSelect.add(new Option(b.name, b.id)));
+                    if (!currentBudgetId || !userBudgets.some(b => b.id === currentBudgetId)) currentBudgetId = userBudgets[0].id;
+                    budgetSelect.value = currentBudgetId; attachActiveBudgetListeners(currentBudgetId);
+                });
             };
 
             const attachActiveBudgetListeners = (budgetId) => {
                 unsubscribeActiveBudget();
                 const budgetRef = db.collection('budgets').doc(budgetId);
-                const listeners = [];
-                
-                listeners.push(budgetRef.collection('transactions').onSnapshot(s => {
-                    localTransactions = s.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    localTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    updateAllUI();
-                }));
-                listeners.push(budgetRef.collection('categories').onSnapshot(s => {
-                    localCategories = s.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    if (localCategories.length === 0) seedDefaultCategories(budgetId);
-                    updateAllUI();
-                }));
-                listeners.push(budgetRef.collection('monthlyBudgets').onSnapshot(s => {
-                    localMonthlyBudgets = {};
-                    s.docs.forEach(doc => localMonthlyBudgets[doc.id] = doc.data());
-                    updateAllUI();
-                }));
-                listeners.push(budgetRef.onSnapshot(doc => {
-                    if (!doc.exists) {
-                         // Budget deleted externally?
-                         currentBudgetId = null;
-                         return;
-                    }
-                    localBudgetMembers = doc.data().members || [];
-                    updateAllUI();
-                }));
-                unsubscribeActiveBudget = () => listeners.forEach(unsub => unsub());
+                const l = [];
+                l.push(budgetRef.collection('transactions').onSnapshot(s => { localTransactions = s.docs.map(d => ({ id: d.id, ...d.data() })); localTransactions.sort((a, b) => new Date(b.date) - new Date(a.date)); updateAllUI(); }));
+                l.push(budgetRef.collection('categories').onSnapshot(s => { localCategories = s.docs.map(d => ({ id: d.id, ...d.data() })); if (localCategories.length === 0) seedDefaultCategories(budgetId); updateAllUI(); }));
+                l.push(budgetRef.collection('monthlyBudgets').onSnapshot(s => { localMonthlyBudgets = {}; s.forEach(d => localMonthlyBudgets[d.id] = d.data()); updateAllUI(); }));
+                l.push(budgetRef.onSnapshot(d => { if (!d.exists) { currentBudgetId = null; return; } localBudgetMembers = d.data().members || []; updateAllUI(); }));
+                unsubscribeActiveBudget = () => l.forEach(u => u());
             };
 
             const seedDefaultCategories = async (budgetId) => {
-                const categoriesRef = db.collection('budgets').doc(budgetId).collection('categories');
-                const snapshot = await categoriesRef.limit(1).get();
-                if (snapshot.empty) {
+                const ref = db.collection('budgets').doc(budgetId).collection('categories');
+                if ((await ref.limit(1).get()).empty) { const batch = db.batch(); const cats = currentLang === 'pl' ? defaultCategoriesPL : defaultCategoriesEN; cats.forEach(c => batch.set(ref.doc(), c)); await batch.commit(); }
+            };
+
+            document.getElementById('force-seed-btn').onclick = async () => { if(confirm("Naprawić?")) { await seedDefaultCategories(currentBudgetId); alert("OK"); }};
+            document.getElementById('load-demo-data-btn').onclick = async () => {
+                if(currentUser.email !== 'mwojciechowski808@gmail.com') return alert("Brak uprawnień.");
+                if(confirm("Wgrać dane z Listopada 2025?")) {
+                    const transRef = db.collection('budgets').doc(currentBudgetId).collection('transactions');
                     const batch = db.batch();
-                    const cats = currentLang === 'pl' ? defaultCategoriesPL : defaultCategoriesEN;
-                    cats.forEach(cat => batch.set(categoriesRef.doc(), cat));
-                    await batch.commit();
+                    const demo = [ { date: '2025-11-01', description: 'Wypłata 1', amount: 2250 }, { date: '2025-11-01', description: 'Miesięczny czynsz', amount: 1800 }, { date: '2025-11-03', description: 'Media', amount: 185.50 }, { date: '2025-11-05', description: 'Zakupy spożywcze', amount: 142.30 }, { date: '2025-11-06', description: 'Kolacja na mieście', amount: 65.00 } ];
+                    demo.forEach(dt => {
+                         let target = ''; if(dt.description.includes('Wypłata')) target='Wypłata'; else if(dt.description.includes('czynsz')) target='Czynsz/Kredyt'; else if(dt.description.includes('Media')) target='Media'; else if(dt.description.includes('Zakupy')) target='Zakupy spożywcze'; else if(dt.description.includes('Kolacja')) target='Restauracje';
+                         const cat = localCategories.find(c => c.name === target);
+                         if(cat) batch.set(transRef.doc(), { date: dt.date, description: dt.description, amount: dt.amount, categoryId: cat.id, userId: currentUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    });
+                    await batch.commit(); alert("Wgrano!");
                 }
             };
-            
-            // NEW: Manual Force Seed & Load Demo Data
-            document.getElementById('force-seed-btn').addEventListener('click', async () => {
-                 if(confirm("Czy na pewno chcesz nadpisać kategorie?")) {
-                     await seedDefaultCategories(currentBudgetId);
-                     alert("Naprawiono!");
-                 }
-            });
-            
-            // Manual trigger for demo data if needed (attached to button in Budget Manager)
-            document.getElementById('load-demo-data-btn').addEventListener('click', async () => {
-                // NEW: Permission check - only allow for specific email
-                if(currentUser.email !== 'mwojciechowski808@gmail.com') {
-                    alert("Brak uprawnień do tej operacji.");
-                    return;
-                }
 
-                if(confirm("Czy chcesz wgrać przykładowe dane z Listopada 2025?")) {
-                    const transRef = db.collection('budgets').doc(currentBudgetId).collection('transactions');
-                    const demoTransactions = [
-                         { date: '2025-11-01', description: 'Wypłata 1', amount: 2250 },
-                         { date: '2025-11-01', description: 'Miesięczny czynsz', amount: 1800 },
-                         { date: '2025-11-03', description: 'Media', amount: 185.50 },
-                         { date: '2025-11-05', description: 'Zakupy spożywcze', amount: 142.30 },
-                         { date: '2025-11-06', description: 'Kolacja na mieście', amount: 65.00 }
-                    ];
-                    const batch = db.batch();
-                     
-                     // Refresh categories map
-                     const cats = localCategories;
-                     
-                     demoTransactions.forEach(dt => {
-                         // Find category
-                         let targetCatName = '';
-                         if(dt.description === 'Wypłata 1') targetCatName = 'Wypłata';
-                         else if(dt.description === 'Miesięczny czynsz') targetCatName = 'Czynsz/Kredyt';
-                         else if(dt.description === 'Media') targetCatName = 'Media';
-                         else if(dt.description === 'Zakupy spożywcze') targetCatName = 'Zakupy spożywcze';
-                         else if(dt.description === 'Kolacja na mieście') targetCatName = 'Restauracje';
-                         
-                         const cat = cats.find(c => c.name === targetCatName);
-                         if(cat) {
-                             const newTransRef = transRef.doc();
-                             batch.set(newTransRef, {
-                                 date: dt.date,
-                                 description: dt.description,
-                                 amount: dt.amount,
-                                 categoryId: cat.id,
-                                 userId: currentUser.uid,
-                                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                             });
-                         }
-                     });
-                     await batch.commit();
-                     alert("Dane wgrane!");
-                }
-            });
-
-            // === 4. LOGIKA OBLICZEŃ (Zmieniona dla filtru użytkownika) ===
             const getBudgetedAmount = (catId) => localMonthlyBudgets[currentMonthKey]?.[catId] || 0;
 
             const calculateAll = () => {
@@ -833,43 +503,23 @@
                     const budgeted = getBudgetedAmount(cat.id);
                     const catTransactions = filteredTransactions.filter(t => t.categoryId === cat.id);
                     const actual = catTransactions.reduce((sum, t) => sum + t.amount, 0);
-                    
                     const actualByUser = {};
                     for (const userId in localUsers) {
-                        actualByUser[userId] = currentMonthTransactions
-                            .filter(t => t.categoryId === cat.id && t.userId === userId)
-                            .reduce((sum, t) => sum + t.amount, 0);
+                        actualByUser[userId] = currentMonthTransactions.filter(t => t.categoryId === cat.id && t.userId === userId).reduce((sum, t) => sum + t.amount, 0);
                     }
-                    
-                    const remaining = budgeted - actual;
-                    return { ...cat, actual, remaining, budgeted, actualByUser };
+                    return { ...cat, actual, remaining: budgeted - actual, budgeted, actualByUser };
                 });
 
                 const sumByType = (type, prop) => calculatedCategories.filter(c => c.type === type).reduce((sum, c) => sum + c[prop], 0);
-
-                const totalIncomeBudgeted = sumByType('Income', 'budgeted');
                 const totalIncomeActual = sumByType('Income', 'actual');
                 const totalExpensesBudgeted = sumByType('Expense', 'budgeted') + sumByType('Bill', 'budgeted') + sumByType('Debt', 'budgeted') + sumByType('Savings', 'budgeted');
                 const totalExpensesActual = sumByType('Expense', 'actual') + sumByType('Bill', 'actual') + sumByType('Debt', 'actual') + sumByType('Savings', 'actual');
                 
-                // NEW: Modified Logic for Left to Spend
-                let amountLeftToSpend;
-                if (currentFilterUserId) {
-                    // Filtered View: User Income - User Expenses
-                    amountLeftToSpend = totalIncomeActual - totalExpensesActual; 
-                } else {
-                    // Global View: Budget - Actual
-                    amountLeftToSpend = totalExpensesBudgeted - totalExpensesActual;
-                }
+                const amountLeftToSpend = currentFilterUserId ? (totalIncomeActual - totalExpensesActual) : (totalExpensesBudgeted - totalExpensesActual);
 
-                return {
-                    calculatedCategories,
-                    summaries: { totalIncomeBudgeted, totalIncomeActual, totalExpensesBudgeted, totalExpensesActual, amountLeftToSpend },
-                    filteredTransactions
-                };
+                return { calculatedCategories, summaries: { totalIncomeActual, totalExpensesBudgeted, totalExpensesActual, amountLeftToSpend, totalIncomeBudgeted: sumByType('Income', 'budgeted') }, filteredTransactions };
             };
             
-            // === 5. RENDEROWANIE ===
             const renderSummaryCards = (s) => {
                 document.getElementById('summary-left-to-spend').textContent = formatCurrency(s.amountLeftToSpend);
                 document.getElementById('summary-spent-so-far').textContent = formatCurrency(s.totalExpensesActual);
@@ -880,36 +530,26 @@
                 document.getElementById('summary-expenses-budgeted').textContent = formatCurrency(s.totalExpensesBudgeted);
             };
 
-            const createCategoryTableHTML = (categories, title) => {
-                if (categories.length === 0) return '';
+            const createCategoryTableHTML = (cats, title) => {
+                if (cats.length === 0) return '';
                 return `<div class="space-y-2"><h3 class="text-base font-semibold text-white tracking-wider uppercase">${title}</h3><div class="divide-y divide-gray-700">` +
-                categories.map(cat => {
+                cats.map(cat => {
                     const percent = (cat.budgeted > 0) ? Math.max(0, Math.min(100, (cat.actual / cat.budgeted) * 100)) : 0;
                     let barColor = 'bg-brand-teal';
                     if (cat.type !== 'Income') barColor = percent > 90 ? 'bg-red-500' : (percent > 75 ? 'bg-yellow-500' : 'bg-brand-purple');
-                    
                     let userBreakdownHTML = '';
                     if (cat.type !== 'Income') {
-                        const userSpans = localBudgetMembers
-                            .map(uid => ({ uid, amount: cat.actualByUser[uid] || 0 }))
-                            .filter(u => u.amount > 0)
-                            .map(u => `<span>${localUsers[u.uid] || i18n('unknownUser')}: ${formatCurrency(u.amount)}</span>`)
-                            .join('');
+                        const userSpans = localBudgetMembers.map(uid => ({ uid, amount: cat.actualByUser[uid] || 0 })).filter(u => u.amount > 0).map(u => `<span>${localUsers[u.uid] || i18n('unknownUser')}: ${formatCurrency(u.amount)}</span>`).join('');
                         if (userSpans) userBreakdownHTML = `<div class="flex justify-end text-xs text-gray-500 space-x-3 pt-1">${userSpans}</div>`;
                     }
-
-                    return `<div class="py-2">
-                            <div class="flex justify-between text-sm mb-1"><span class="text-gray-200">${cat.name}</span><span class="text-gray-400">${formatCurrency(cat.actual)} / <span class="budget-value" data-id="${cat.id}" title="${i18n('clickToEditBudget')}">${formatCurrency(cat.budgeted)}</span></span></div>
-                            <div class="w-full progress-bar rounded-full h-2"><div class="${barColor} progress h-2 rounded-full" style="width: ${percent}%"></div></div>
-                            ${userBreakdownHTML}
-                        </div>`;
+                    return `<div class="py-2"><div class="flex justify-between text-sm mb-1"><span class="text-gray-200">${cat.name}</span><span class="text-gray-400">${formatCurrency(cat.actual)} / <span class="budget-value" data-id="${cat.id}" title="${i18n('clickToEditBudget')}">${formatCurrency(cat.budgeted)}</span></span></div><div class="w-full progress-bar rounded-full h-2"><div class="${barColor} progress h-2 rounded-full" style="width: ${percent}%"></div></div>${userBreakdownHTML}</div>`;
                 }).join('') + `</div></div>`;
             };
             
             const renderCategoryTables = (cats) => {
                 const types = ['Income', 'Expense', 'Bill', 'Debt', 'Savings'];
-                const titleKeys = ['catGroupIncome', 'catGroupExpense', 'catGroupBill', 'catGroupDebt', 'catGroupSavings'];
-                containerIds.forEach((id, i) => document.getElementById(id).innerHTML = createCategoryTableHTML(cats.filter(c => c.type === types[i]), i18n(titleKeys[i])));
+                const keys = ['catGroupIncome', 'catGroupExpense', 'catGroupBill', 'catGroupDebt', 'catGroupSavings'];
+                containerIds.forEach((id, i) => document.getElementById(id).innerHTML = createCategoryTableHTML(cats.filter(c => c.type === types[i]), i18n(keys[i])));
             };
 
             const renderTransactionList = (trans) => {
@@ -918,45 +558,23 @@
                 Array.from(container.children).forEach(c => c.id !== 'no-transactions' && container.removeChild(c));
                 if (trans.length === 0) { noTrans.classList.remove('hidden'); return; }
                 noTrans.classList.add('hidden');
-                
                 trans.forEach(t => {
                     const cat = localCategories.find(c => c.id === t.categoryId);
                     const sign = (cat && cat.type === 'Income') ? '+' : '-';
                     const color = (cat && cat.type === 'Income') ? 'text-brand-teal' : 'text-gray-200';
-                    const html = `<div class="flex items-center justify-between py-3 border-b border-gray-700/50">
-                                <div class="flex-grow"><p class="font-medium text-white">${t.description}</p><p class="text-sm text-gray-400">${cat ? cat.name : i18n('deletedCategory')} &bull; ${localUsers[t.userId] || i18n('unknownUser')} &bull; ${formatDate(t.date)}</p></div>
-                                <span class="font-medium text-lg ${color} ml-4">${sign}${formatCurrency(t.amount)}</span>
-                                <button data-id="${t.id}" class="delete-trans-btn text-red-500 hover:text-red-300 ml-2" title="${i18n('deleteTransactionTooltip')}">&times;</button>
-                            </div>`;
+                    const html = `<div class="flex items-center justify-between py-3 border-b border-gray-700/50"><div class="flex-grow"><p class="font-medium text-white">${t.description}</p><p class="text-sm text-gray-400">${cat ? cat.name : i18n('deletedCategory')} &bull; ${localUsers[t.userId] || i18n('unknownUser')} &bull; ${formatDate(t.date)}</p></div><span class="font-medium text-lg ${color} ml-4">${sign}${formatCurrency(t.amount)}</span><button data-id="${t.id}" class="delete-trans-btn text-red-500 hover:text-red-300 ml-2" title="${i18n('deleteTransactionTooltip')}">&times;</button></div>`;
                     container.insertAdjacentHTML('beforeend', html);
                 });
             };
 
             const renderCategoryManagerList = () => {
                 const container = document.getElementById('category-manager-list');
-                const typeKeys = { 'Income': 'catTypeIncome', 'Expense': 'catTypeExpense', 'Bill': 'catTypeBill', 'Debt': 'catTypeDebt', 'Savings': 'catTypeSavings' };
-
-                container.innerHTML = localCategories.map(cat => `
-                    <div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                        <div>
-                            <p class="font-medium text-white">${cat.name}</p>
-                            <p class="text-sm text-gray-400">${i18n(typeKeys[cat.type])} &bull; ${i18n('defaultBudget')}: ${formatCurrency(cat.budgeted)}</p>
-                        </div>
-                        <div class="space-x-2 flex-shrink-0 ml-4">
-                            <button data-id="${cat.id}" class="edit-cat-btn text-brand-teal hover:text-teal-400 font-medium text-sm" data-i18n-key="edit">Edytuj</button>
-                            <button data-id="${cat.id}" class="delete-cat-btn text-red-500 hover:text-red-400 font-medium text-sm" data-i18n-key="delete">Usuń</button>
-                        </div>
-                    </div>
-                `).join('');
+                const keys = { 'Income': 'catTypeIncome', 'Expense': 'catTypeExpense', 'Bill': 'catTypeBill', 'Debt': 'catTypeDebt', 'Savings': 'catTypeSavings' };
+                container.innerHTML = localCategories.map(cat => `<div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg"><div><p class="font-medium text-white">${cat.name}</p><p class="text-sm text-gray-400">${i18n(keys[cat.type])} &bull; ${i18n('defaultBudget')}: ${formatCurrency(cat.budgeted)}</p></div><div class="space-x-2 flex-shrink-0 ml-4"><button data-id="${cat.id}" class="edit-cat-btn text-brand-teal hover:text-teal-400 font-medium text-sm" data-i18n-key="edit">Edytuj</button><button data-id="${cat.id}" class="delete-cat-btn text-red-500 hover:text-red-400 font-medium text-sm" data-i18n-key="delete">Usuń</button></div></div>`).join('');
             };
             
             const renderBudgetManagerList = () => {
-                const container = document.getElementById('budget-user-list');
-                container.innerHTML = localBudgetMembers.map(userId => `
-                    <div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                        <p class="font-medium text-white">${localUsers[userId] || i18n('unknownUser')}</p>
-                    </div>
-                `).join('');
+                document.getElementById('budget-user-list').innerHTML = localBudgetMembers.map(uid => `<div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg"><p class="font-medium text-white">${localUsers[uid] || i18n('unknownUser')}</p></div>`).join('');
             };
 
             const populateCategorySelect = () => {
@@ -971,79 +589,46 @@
             };
             
             const populateUserFilterSelect = () => {
-                const select = document.getElementById('filter-user-select');
-                select.innerHTML = `<option value="">${i18n('allUsers')}</option>`;
-                localBudgetMembers.forEach(userId => {
-                    const option = document.createElement('option');
-                    option.value = userId;
-                    option.textContent = localUsers[userId] || i18n('unknownUser');
-                    select.appendChild(option);
-                });
-                select.value = currentFilterUserId || '';
+                const sel = document.getElementById('filter-user-select');
+                sel.innerHTML = `<option value="">${i18n('allUsers')}</option>`;
+                localBudgetMembers.forEach(uid => sel.add(new Option(localUsers[uid] || i18n('unknownUser'), uid)));
+                sel.value = currentFilterUserId || '';
             };
 
             const populateDateControls = () => {
                 document.getElementById('trans-date').valueAsDate = new Date();
                 const monthSelect = document.getElementById('month-select');
                 const yearSelect = document.getElementById('year-select');
-                // FIX: Ensure month names are array
                 const months = i18n('monthNames');
                 const monthList = Array.isArray(months) ? months : Object.values(months);
-
                 const currentYear = new Date().getFullYear();
-                const currentMonth = new Date().getMonth(); // 0-11
-                
-                if(currentMonthKey === '') {
-                    currentMonthKey = `${currentMonth}-${currentYear}`;
-                }
-
-                monthSelect.innerHTML = '';
-                monthList.forEach((month, i) => {
-                    monthSelect.add(new Option(month, i));
-                });
-                
-                yearSelect.innerHTML = '';
-                [currentYear - 2, currentYear - 1, currentYear, currentYear + 1, currentYear + 2].forEach(year => {
-                    yearSelect.add(new Option(year, year));
-                });
-
-                const [monthFromKey, yearFromKey] = currentMonthKey.split('-').map(Number);
-                monthSelect.value = monthFromKey;
-                yearSelect.value = yearFromKey;
+                const currentMonth = new Date().getMonth();
+                if(currentMonthKey === '') currentMonthKey = `${currentMonth}-${currentYear}`;
+                monthSelect.innerHTML = ''; monthList.forEach((m, i) => monthSelect.add(new Option(m, i)));
+                yearSelect.innerHTML = ''; [currentYear-2, currentYear-1, currentYear, currentYear+1, currentYear+2].forEach(y => yearSelect.add(new Option(y, y)));
+                const [m, y] = currentMonthKey.split('-').map(Number);
+                monthSelect.value = m; yearSelect.value = y;
             };
             
             const populateCategoryTypeSelect = () => {
-                const select = document.getElementById('cat-form-type');
-                const typeKeys = { 'Income': 'catTypeIncome', 'Expense': 'catTypeExpense', 'Bill': 'catTypeBill', 'Debt': 'catTypeDebt', 'Savings': 'catTypeSavings' };
-                select.innerHTML = '';
-                Object.entries(typeKeys).forEach(([key, i18nKey]) => {
-                    select.add(new Option(i18n(i18nKey), key));
-                });
+                const sel = document.getElementById('cat-form-type');
+                const keys = { 'Income': 'catTypeIncome', 'Expense': 'catTypeExpense', 'Bill': 'catTypeBill', 'Debt': 'catTypeDebt', 'Savings': 'catTypeSavings' };
+                sel.innerHTML = ''; Object.entries(keys).forEach(([k, v]) => sel.add(new Option(i18n(v), k)));
             };
 
-            // === 6. WYKRESY ===
             const initCharts = (data) => {
                 const { calculatedCategories } = data;
                 const dCtx = document.getElementById('spendingDoughnutChart').getContext('2d');
                 if (spendingDoughnutChart) spendingDoughnutChart.destroy();
                 const dData = calculatedCategories.filter(c => c.type !== 'Income' && c.actual > 0);
-                spendingDoughnutChart = new Chart(dCtx, {
-                    type: 'doughnut',
-                    data: { labels: dData.map(c => c.name), datasets: [{ data: dData.map(c => c.actual), backgroundColor: pieColors, borderColor: '#1f2937', borderWidth: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#d1d5db', font: { family: 'Inter' } } } } }
-                });
+                spendingDoughnutChart = new Chart(dCtx, { type: 'doughnut', data: { labels: dData.map(c => c.name), datasets: [{ data: dData.map(c => c.actual), backgroundColor: pieColors, borderColor: '#1f2937', borderWidth: 4 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#d1d5db', font: { family: 'Inter' } } } } } });
                 
                 const bCtx = document.getElementById('budgetBarChart').getContext('2d');
                 if (budgetBarChart) budgetBarChart.destroy();
                 const bData = calculatedCategories.filter(c => c.type === 'Expense'); 
-                budgetBarChart = new Chart(bCtx, {
-                    type: 'bar',
-                    data: { labels: bData.map(c => c.name), datasets: [{ label: i18n('chartBudgeted'), data: bData.map(c => c.budgeted), backgroundColor: '#374151', borderRadius: 4 }, { label: i18n('chartSpent'), data: bData.map(c => c.actual), backgroundColor: '#a855f7', borderRadius: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#374151' }, ticks: { color: '#9ca3af', font: { family: 'Inter' } } }, x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { family: 'Inter' } } } }, plugins: { legend: { position: 'top', labels: { color: '#d1d5db', font: { family: 'Inter' } } } } }
-                });
+                budgetBarChart = new Chart(bCtx, { type: 'bar', data: { labels: bData.map(c => c.name), datasets: [{ label: i18n('chartBudgeted'), data: bData.map(c => c.budgeted), backgroundColor: '#374151', borderRadius: 4 }, { label: i18n('chartSpent'), data: bData.map(c => c.actual), backgroundColor: '#a855f7', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#374151' }, ticks: { color: '#9ca3af', font: { family: 'Inter' } } }, x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { family: 'Inter' } } } }, plugins: { legend: { position: 'top', labels: { color: '#d1d5db', font: { family: 'Inter' } } } } } });
             };
 
-            // === 7. HANDLERY I USTAWIENIA ===
             const handleAuthSubmit = async (formId, isRegister) => {
                 const email = document.getElementById(isRegister ? 'register-email' : 'login-email').value;
                 const pass = document.getElementById(isRegister ? 'register-password' : 'login-password').value;
@@ -1055,82 +640,23 @@
                         if(!name) throw new Error("Name required");
                         const cred = await auth.createUserWithEmailAndPassword(email, pass);
                         await db.collection('users').doc(cred.user.uid).set({ name, email });
-                    } else {
-                        await auth.signInWithEmailAndPassword(email, pass);
-                    }
-                } catch(err) {
-                    errorBox.textContent = i18n(isRegister ? 'authErrorRegister' : 'authErrorLogin');
-                    errorBox.classList.remove('hidden');
-                }
+                    } else { await auth.signInWithEmailAndPassword(email, pass); }
+                } catch(err) { errorBox.textContent = i18n(isRegister ? 'authErrorRegister' : 'authErrorLogin'); errorBox.classList.remove('hidden'); }
             };
-            document.getElementById('login-form').addEventListener('submit', (e) => { e.preventDefault(); handleAuthSubmit('login-form', false); });
-            document.getElementById('register-form').addEventListener('submit', (e) => { e.preventDefault(); handleAuthSubmit('register-form', true); });
-            document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
-            
-            // NEW: Forgot Password Logic
-            document.getElementById('forgot-password-btn').addEventListener('click', async () => {
+            document.getElementById('login-form').onsubmit = (e) => { e.preventDefault(); handleAuthSubmit('login-form', false); };
+            document.getElementById('register-form').onsubmit = (e) => { e.preventDefault(); handleAuthSubmit('register-form', true); };
+            document.getElementById('logout-btn').onclick = () => auth.signOut();
+            document.getElementById('forgot-password-btn').onclick = async () => {
                 const email = document.getElementById('login-email').value;
-                if (!email) {
-                    alert('Wpisz swój email w pole powyżej.');
-                    return;
-                }
-                try {
-                    await auth.sendPasswordResetEmail(email);
-                    document.getElementById('auth-success').textContent = i18n('forgotPasswordSuccess');
-                    document.getElementById('auth-success').classList.remove('hidden');
-                } catch(error) {
-                    alert('Błąd: ' + error.message);
-                }
-            });
-
-            // NEW: Create Budget Logic
-            document.getElementById('create-budget-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const name = document.getElementById('new-budget-name').value;
-                if(name) {
-                    await createPersonalBudget(currentUser.uid, currentUser.email.split('@')[0], name);
-                    document.getElementById('new-budget-name').value = '';
-                    showMessage('budgetCreated', 'success');
-                    hideModal('budget-manager-modal');
-                }
-            });
-
-            // Delete Budget Logic
-            document.getElementById('delete-budget-btn').addEventListener('click', async () => {
-                if(confirm(i18n('confirmDeleteBudget'))) {
-                    try {
-                        const batch = db.batch();
-                        await db.collection('budgets').doc(currentBudgetId).delete();
-                        hideModal('budget-manager-modal');
-                    } catch (e) {
-                        console.error(e);
-                    }
-                }
-            });
-            
-            // Budget Manager & Invites
-            document.getElementById('manage-budget-btn').onclick = () => {
-                 const b = userBudgets.find(bud => bud.id === currentBudgetId);
-                 if(b) document.getElementById('budget-form-name').value = b.name;
-                 const userList = document.getElementById('budget-user-list');
-                 userList.innerHTML = localBudgetMembers.map(uid => `<div class="p-2 bg-gray-700 rounded text-white">${localUsers[uid] || uid}</div>`).join('');
-                 
-                 // NEW: Permission check for demo data
-                 const demoSection = document.getElementById('demo-data-section');
-                 if (currentUser && currentUser.email === 'mwojciechowski808@gmail.com') {
-                     demoSection.classList.remove('hidden');
-                 } else {
-                     demoSection.classList.add('hidden');
-                 }
-                 
-                 showModal('budget-manager-modal');
+                if (!email) return alert('Podaj email');
+                try { await auth.sendPasswordResetEmail(email); document.getElementById('auth-success').textContent = i18n('forgotPasswordSuccess'); document.getElementById('auth-success').classList.remove('hidden'); } catch(e) { alert(e.message); }
             };
+
+            document.getElementById('create-budget-form').onsubmit = async (e) => { e.preventDefault(); const name = document.getElementById('new-budget-name').value; if(name) { await createPersonalBudget(currentUser.uid, currentUser.email.split('@')[0], name); showMessage('budgetCreated', 'success'); hideModal('budget-manager-modal'); } };
+            document.getElementById('delete-budget-btn').onclick = async () => { if(confirm(i18n('confirmDeleteBudget'))) { await db.collection('budgets').doc(currentBudgetId).delete(); hideModal('budget-manager-modal'); } };
+            document.getElementById('manage-budget-btn').onclick = () => { const b = userBudgets.find(bud => bud.id === currentBudgetId); if(b) document.getElementById('budget-form-name').value = b.name; renderBudgetManagerList(); const d = document.getElementById('demo-data-section'); d.classList.toggle('hidden', currentUser.email !== 'mwojciechowski808@gmail.com'); showModal('budget-manager-modal'); };
             document.getElementById('close-budget-modal').onclick = () => hideModal('budget-manager-modal');
-            document.getElementById('budget-name-form').onsubmit = async (e) => {
-                e.preventDefault();
-                await db.collection('budgets').doc(currentBudgetId).update({ name: document.getElementById('budget-form-name').value });
-                showMessage('budgetNameUpdated');
-            };
+            document.getElementById('budget-name-form').onsubmit = async (e) => { e.preventDefault(); await db.collection('budgets').doc(currentBudgetId).update({ name: document.getElementById('budget-form-name').value }); showMessage('budgetNameUpdated'); };
             document.getElementById('invite-user-form').onsubmit = async (e) => {
                 e.preventDefault();
                 const email = document.getElementById('invite-email').value;
@@ -1142,10 +668,8 @@
                 showMessage('inviteSuccess', 'success', {email});
             };
 
-            // Language / Currency Switchers (Auth Screen)
             const setLang = (lang) => { currentLang = lang; document.documentElement.lang = lang; updateTexts(); };
             const setCurr = (curr) => { currentCurrency = curr; updateTexts(); };
-            
             const updateTexts = () => {
                 document.querySelectorAll('[data-i18n-key]').forEach(el => {
                     const k = el.dataset.i18nKey;
@@ -1153,65 +677,34 @@
                     else if(el.title && k.includes('Tooltip')) el.title = i18n(k);
                     else el.textContent = i18n(k);
                 });
-                ['auth-lang','lang'].forEach(p => {
-                    document.getElementById(`${p}-pl`)?.classList.toggle('active', currentLang==='pl');
-                    document.getElementById(`${p}-en`)?.classList.toggle('active', currentLang==='en');
-                });
-                ['auth-curr','curr'].forEach(p => {
-                    document.getElementById(`${p}-pln`)?.classList.toggle('active', currentCurrency==='PLN');
-                    document.getElementById(`${p}-eur`)?.classList.toggle('active', currentCurrency==='EUR');
-                });
-                
-                if(currentUser) { 
-                    populateDateControls(); updateAllUI(); 
-                }
+                ['auth-lang','lang'].forEach(p => { document.getElementById(`${p}-pl`)?.classList.toggle('active', currentLang==='pl'); document.getElementById(`${p}-en`)?.classList.toggle('active', currentLang==='en'); });
+                ['auth-curr','curr'].forEach(p => { document.getElementById(`${p}-pln`)?.classList.toggle('active', currentCurrency==='PLN'); document.getElementById(`${p}-eur`)?.classList.toggle('active', currentCurrency==='EUR'); });
+                if(currentUser) { populateDateControls(); updateAllUI(); }
             };
-
-            // Listeners for buttons
-            document.getElementById('auth-lang-pl').onclick = () => setLang('pl');
-            document.getElementById('auth-lang-en').onclick = () => setLang('en');
-            document.getElementById('auth-curr-pln').onclick = () => setCurr('PLN');
-            document.getElementById('auth-curr-eur').onclick = () => setCurr('EUR');
+            document.getElementById('auth-lang-pl').onclick = () => setLang('pl'); document.getElementById('auth-lang-en').onclick = () => setLang('en'); document.getElementById('auth-curr-pln').onclick = () => setCurr('PLN'); document.getElementById('auth-curr-eur').onclick = () => setCurr('EUR');
+            document.getElementById('lang-pl').onclick = () => setLang('pl'); document.getElementById('lang-en').onclick = () => setLang('en'); document.getElementById('curr-pln').onclick = () => setCurr('PLN'); document.getElementById('curr-eur').onclick = () => setCurr('EUR');
             
-            document.getElementById('lang-pl').onclick = () => setLang('pl');
-            document.getElementById('lang-en').onclick = () => setLang('en');
-            document.getElementById('curr-pln').onclick = () => setCurr('PLN');
-            document.getElementById('curr-eur').onclick = () => setCurr('EUR');
-
-            // Initialize
-            initAuthListener();
-            
-            // ... (Reszta handlerów transakcji, kategorii, budżetu - bez większych zmian logicznych) ...
-            
-            document.getElementById('fab-add-transaction').onclick = () => {
-                 document.getElementById('transaction-form').reset();
-                 document.getElementById('trans-date').valueAsDate = new Date();
-                 populateCategorySelect();
-                 showModal('transaction-modal');
-            };
+            document.getElementById('fab-add-transaction').onclick = () => { document.getElementById('transaction-form').reset(); document.getElementById('trans-date').valueAsDate = new Date(); populateCategorySelect(); showModal('transaction-modal'); };
             document.getElementById('close-transaction-modal').onclick = () => hideModal('transaction-modal');
             document.getElementById('transaction-form').onsubmit = async (e) => {
                 e.preventDefault();
                 const fd = new FormData(e.target);
                 const cat = localCategories.find(c => c.id === fd.get('trans-category'));
                 if(!cat) return showMessage('invalidCategory', 'error');
-                await db.collection('budgets').doc(currentBudgetId).collection('transactions').add({
-                    date: fd.get('trans-date'), description: fd.get('trans-description'), categoryId: cat.id, amount: parseFloat(fd.get('trans-amount')), userId: currentUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                await db.collection('budgets').doc(currentBudgetId).collection('transactions').add({ date: fd.get('trans-date'), description: fd.get('trans-description'), categoryId: cat.id, amount: parseFloat(fd.get('trans-amount')), userId: currentUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
                 showMessage('transactionAdded'); hideModal('transaction-modal');
             };
-            document.getElementById('transaction-list-container').onclick = async (e) => {
-                if(e.target.classList.contains('delete-trans-btn') && confirm(i18n('confirmDelete'))) {
-                    await db.collection('budgets').doc(currentBudgetId).collection('transactions').doc(e.target.dataset.id).delete();
-                    showMessage('transactionDeleted');
-                }
-            };
+            document.getElementById('transaction-list-container').onclick = async (e) => { if(e.target.classList.contains('delete-trans-btn') && confirm(i18n('confirmDelete'))) { await db.collection('budgets').doc(currentBudgetId).collection('transactions').doc(e.target.dataset.id).delete(); showMessage('transactionDeleted'); }};
             
-            // Filter
             document.getElementById('filter-user-select').onchange = (e) => { currentFilterUserId = e.target.value || null; updateAllUI(); };
-            
-            // POPRAWKA: Zdefiniowano containerIds globalnie - JUŻ JEST DEFINIOWANY NA POCZĄTKU PLIKU, WIĘC TU NIE POWTARZAM.
-            // const containerIds = ... (removed duplicate)
+            const handleDateChange = (e) => {
+                currentMonthKey = `${document.getElementById('month-select').value}-${document.getElementById('year-select').value}`;
+                // FIX: Call updateAllUI IMMEDIATELY to clear old month data from view
+                updateAllUI();
+                const ref = db.collection('budgets').doc(currentBudgetId).collection('monthlyBudgets').doc(currentMonthKey);
+                ref.get().then(d => { if(!d.exists) { const n={}; localCategories.forEach(c=>n[c.id]=c.budgeted||0); ref.set(n); } });
+            };
+            document.getElementById('month-select').onchange = handleDateChange; document.getElementById('year-select').onchange = handleDateChange;
 
             const updateAllUI = () => {
                 if(!currentUser || !currentBudgetId) return;
@@ -1219,45 +712,104 @@
                 renderSummaryCards(data.summaries);
                 renderCategoryTables(data.calculatedCategories);
                 renderTransactionList(data.filteredTransactions);
-                
-                // Update user filter dropdown
                 const filterSel = document.getElementById('filter-user-select');
                 const currentVal = filterSel.value;
                 filterSel.innerHTML = `<option value="">${i18n('allUsers')}</option>`;
                 localBudgetMembers.forEach(uid => filterSel.add(new Option(localUsers[uid] || i18n('unknownUser'), uid)));
                 filterSel.value = currentVal;
-
                 initCharts(data);
             };
 
-            // Budget editing logic fix
             const handleBudgetEdit = async (e) => {
                 if (e.target.classList.contains('budget-value')) {
                     const catId = e.target.dataset.id;
                     const category = localCategories.find(c => c.id === catId);
-                    const currentBudget = getBudgetedAmount(catId);
-                    
                     if (category) {
-                        const newBudgetValue = prompt(`${i18n('budgetFor')} "${category.name}":`, currentBudget);
+                        const newBudgetValue = prompt(`${i18n('budgetFor')} "${category.name}":`, getBudgetedAmount(catId));
                         if (newBudgetValue === null) return;
-
                         const newAmount = parseFloat(newBudgetValue.replace(',', '.'));
-                        
                         if (!isNaN(newAmount) && newAmount >= 0) {
                             try {
-                                const budgetDocRef = db.collection('budgets').doc(currentBudgetId).collection('monthlyBudgets').doc(currentMonthKey);
-                                await budgetDocRef.set({ [catId]: newAmount }, { merge: true });
+                                await db.collection('budgets').doc(currentBudgetId).collection('monthlyBudgets').doc(currentMonthKey).set({ [catId]: newAmount }, { merge: true });
                                 showMessage('budgetUpdated', 'success');
-                            } catch (err) {
-                                console.error("Błąd aktualizacji budżetu:", err);
-                            }
-                        } else {
-                            showMessage('invalidAmount', 'error');
-                        }
+                            } catch (err) { console.error(err); }
+                        } else { showMessage('invalidAmount', 'error'); }
                     }
                 }
             };
             containerIds.forEach(id => document.getElementById(id).addEventListener('click', handleBudgetEdit));
+            
+            // Additional Category Manager Handlers
+            let editingCatId = null;
+            const resetCategoryForm = () => { editingCatId = null; document.getElementById('category-form').reset(); document.getElementById('cat-form-submit').textContent = i18n('addCategoryBtn'); document.getElementById('cat-form-cancel').classList.add('hidden'); };
+            document.getElementById('manage-categories-btn').onclick = () => { renderCategoryManagerList(); resetCategoryForm(); populateCategoryTypeSelect(); showModal('category-manager-modal'); };
+            document.getElementById('close-category-modal').onclick = () => hideModal('category-manager-modal');
+            document.getElementById('cat-form-cancel').onclick = resetCategoryForm;
+            document.getElementById('category-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('cat-form-name').value;
+                const budgeted = parseFloat(document.getElementById('cat-form-budgeted').value);
+                const type = document.getElementById('cat-form-type').value;
+                if(!name || isNaN(budgeted)) return showMessage('fillAllFields', 'error');
+                const ref = db.collection('budgets').doc(currentBudgetId).collection('categories');
+                if(editingCatId) { await ref.doc(editingCatId).update({name, budgeted, type}); showMessage('categoryUpdated'); }
+                else { await ref.add({name, budgeted, type}); showMessage('categoryAdded'); }
+                resetCategoryForm();
+            };
+            document.getElementById('category-manager-list').onclick = async (e) => {
+                const id = e.target.dataset.id;
+                if(e.target.classList.contains('edit-cat-btn')) {
+                    const c = localCategories.find(x => x.id === id);
+                    if(c) { editingCatId = id; document.getElementById('cat-form-name').value = c.name; document.getElementById('cat-form-budgeted').value = c.budgeted; document.getElementById('cat-form-type').value = c.type; document.getElementById('cat-form-submit').textContent = i18n('saveChangesBtn'); document.getElementById('cat-form-cancel').classList.remove('hidden'); }
+                } else if(e.target.classList.contains('delete-cat-btn')) {
+                    const q = await db.collection('budgets').doc(currentBudgetId).collection('transactions').where('categoryId', '==', id).limit(1).get();
+                    if(!q.empty) return showMessage('categoryDeleteError', 'error');
+                    if(confirm(i18n('confirmDelete'))) { await db.collection('budgets').doc(currentBudgetId).collection('categories').doc(id).delete(); showMessage('categoryDeleted'); }
+                }
+            };
+            
+            // Yearly Summary Handlers
+            document.getElementById('yearly-summary-btn').onclick = () => {
+                const year = document.getElementById('year-select').value;
+                document.getElementById('yearly-summary-title').textContent = `${i18n('yearlySummaryTitle')}: ${year}`;
+                const months = i18n('monthNames');
+                let html = '', tInc = 0, tExp = 0, tSav = 0;
+                for(let i=0; i<12; i++) {
+                    const mKey = `${i}-${year}`;
+                    const mTrans = localTransactions.filter(t => { const d = new Date(t.date); return d.getMonth() === i && d.getFullYear() == year; });
+                    let inc=0, exp=0, sav=0;
+                    mTrans.forEach(t => { const c = localCategories.find(x => x.id === t.categoryId); if(c) { if(c.type==='Income') inc+=t.amount; else if(c.type==='Savings') sav+=t.amount; else exp+=t.amount; } });
+                    tInc+=inc; tExp+=exp; tSav+=sav;
+                    html += `<tr class="hover:bg-gray-700"><td class="p-3 text-sm text-white">${months[i]}</td><td class="p-3 text-sm text-brand-teal">${formatCurrency(inc)}</td><td class="p-3 text-sm text-brand-pink">${formatCurrency(exp)}</td><td class="p-3 text-sm text-brand-purple">${formatCurrency(sav)}</td></tr>`;
+                }
+                document.getElementById('yearly-summary-table-body').innerHTML = html;
+                document.getElementById('yearly-summary-table-footer').innerHTML = `<td class="p-3 text-sm text-white">${i18n('total')}</td><td class="p-3 text-sm text-brand-teal">${formatCurrency(tInc)}</td><td class="p-3 text-sm text-brand-pink">${formatCurrency(tExp)}</td><td class="p-3 text-sm text-brand-purple">${formatCurrency(tSav)}</td>`;
+                showModal('yearly-summary-modal');
+            };
+            document.getElementById('close-yearly-modal').onclick = () => hideModal('yearly-summary-modal');
+            document.getElementById('export-csv-btn').onclick = () => {
+                const year = document.getElementById('year-select').value;
+                const months = i18n('monthNames');
+                // Summary
+                let csv = `Miesiąc;Przychody;Wydatki;Oszczędności\n`;
+                document.querySelectorAll('#yearly-summary-table-body tr').forEach((r, i) => { const c = r.querySelectorAll('td'); csv += `${months[i]};"${c[1].textContent}";"${c[2].textContent}";"${c[3].textContent}"\n`; });
+                const footer = document.querySelectorAll('#yearly-summary-table-footer td');
+                csv += `${i18n('total')};"${footer[1].textContent}";"${footer[2].textContent}";"${footer[3].textContent}"\n`;
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href = url; a.download = `Podsumowanie_${year}.csv`; a.click();
+                
+                // Transactions
+                let tCsv = `Data;Opis;Kategoria;Typ;Kwota;Użytkownik\n`;
+                localTransactions.filter(t => new Date(t.date).getFullYear() == year).forEach(t => {
+                     const c = localCategories.find(x => x.id === t.categoryId) || {};
+                     tCsv += `${formatDate(t.date)};"${t.description.replace(/"/g, '""')}";"${c.name||''}";"${c.type||''}";"${(c.type==='Income'?'':'-')+t.amount.toFixed(2)}";"${localUsers[t.userId]||''}"\n`;
+                });
+                const tBlob = new Blob(['\uFEFF' + tCsv], { type: 'text/csv;charset=utf-8;' });
+                const tUrl = URL.createObjectURL(tBlob);
+                a.href = tUrl; a.download = `Transakcje_${year}.csv`; a.click();
+            };
+
         });
     </script>
 </body>
