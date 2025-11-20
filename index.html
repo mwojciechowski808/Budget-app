@@ -157,18 +157,21 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- KARTA 1: POZOSTAŁO (Zaktualizowana logika) -->
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
                         <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="leftToSpend">Pozostało do wydania</h2>
                         <p id="summary-left-to-spend" class="text-4xl font-bold text-white">0,00 zł</p>
-                        <p class="text-sm text-gray-400 mt-2"><span id="summary-spent-so-far">0,00 zł</span> <span data-i18n-key="spentOf">wydano z</span> <span id="summary-total-budgeted">0,00 zł</span></p>
+                        <p class="text-sm text-gray-400 mt-2"><span id="summary-spent-so-far">0,00 zł</span> <span data-i18n-key="spentOf">wydano z</span> <span id="summary-total-income">0,00 zł</span></p>
                     </div>
+                    <!-- KARTA 2: PRZYCHODY (Bez zmian) -->
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
                         <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="totalIncome">Całkowity Przychód</h2>
                         <p id="summary-income-actual" class="text-4xl font-bold text-brand-teal">0,00 zł</p>
                         <p class="text-sm text-gray-400 mt-2"><span data-i18n-key="budgeted">Zabudżetowano</span>: <span id="summary-income-budgeted">0,00 zł</span></p>
                     </div>
+                    <!-- KARTA 3: BUDŻET vs WYDATKI (Zaktualizowana) -->
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
-                        <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="totalExpenses">Całkowite Wydatki</h2>
+                        <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="budgetVsActual">Plan vs Wydatki</h2>
                         <p id="summary-expenses-actual" class="text-4xl font-bold text-brand-pink">0,00 zł</p>
                         <p class="text-sm text-gray-400 mt-2"><span data-i18n-key="budgeted">Zabudżetowano</span>: <span id="summary-expenses-budgeted">0,00 zł</span></p>
                     </div>
@@ -350,8 +353,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            
+
             // === 0. KONFIGURACJA FIREBASE ===
+            // !! WAŻNE !! - To jest Twój klucz, który mi podałeś wcześniej.
             const firebaseConfig = {
                 apiKey: "AIzaSyALc9fMeTrLKHGrImqYumKpq0QbuUkJ0Yc",
                 authDomain: "budgeting-app-25c25.firebaseapp.com",
@@ -409,7 +413,8 @@
                     usersInBudget: 'Użytkownicy w tym budżecie', inviteSuccess: 'Użytkownik zaproszony!', inviteErrorUserNotFound: 'Użytkownik nieznaleziony.', inviteErrorAlreadyMember: 'Użytkownik już jest w budżecie.', inviteErrorGeneric: 'Błąd zapraszania.', budgetNameUpdated: 'Nazwa zaktualizowana.',
                     dangerZone: 'Strefa Niebezpieczna', deleteBudgetDesc: 'Usunięcie budżetu jest trwałe. Stracisz wszystkie dane.', deleteBudgetBtn: 'Usuń ten Budżet', confirmDeleteBudget: 'Czy na pewno chcesz usunąć CAŁY budżet i wszystkie dane? Tego nie można cofnąć.',
                     createNewBudget: 'Utwórz Nowy Budżet', newBudgetPlaceholder: 'np. Wakacje 2025', createBtn: 'Utwórz', budgetCreated: 'Budżet utworzony!',
-                    forgotPassword: 'Zapomniałeś hasła?', forgotPasswordSuccess: 'E-mail resetujący wysłany!'
+                    forgotPassword: 'Zapomniałeś hasła?', forgotPasswordSuccess: 'E-mail resetujący wysłany!',
+                    budgetVsActual: 'Plan vs Wydatki'
                 },
                 en: {
                     welcome: "Welcome to Budget Online", login: "Log In", register: "Or Create New Account", email: "Email", password: "Password", name: "Your Name", loginBtn: "Log In", registerBtn: "Register", logout: "Logout",
@@ -431,7 +436,8 @@
                     usersInBudget: 'Users in this budget', inviteSuccess: 'User invited!', inviteErrorUserNotFound: 'User not found.', inviteErrorAlreadyMember: 'User already member.', inviteErrorGeneric: 'Error inviting user.', budgetNameUpdated: 'Name updated.',
                     dangerZone: 'Danger Zone', deleteBudgetDesc: 'Deleting a budget is permanent. All data will be lost.', deleteBudgetBtn: 'Delete this Budget', confirmDeleteBudget: 'Are you sure you want to delete the ENTIRE budget? This cannot be undone.',
                     createNewBudget: 'Create New Budget', newBudgetPlaceholder: 'e.g., Vacation 2025', createBtn: 'Create', budgetCreated: 'Budget created!',
-                    forgotPassword: 'Forgot Password?', forgotPasswordSuccess: 'Reset email sent!'
+                    forgotPassword: 'Forgot Password?', forgotPasswordSuccess: 'Reset email sent!',
+                    budgetVsActual: 'Budget vs Actual'
                 }
             };
 
@@ -471,7 +477,6 @@
             };
 
             // === ATTACH LISTENERS IMMEDIATELY ===
-            // Prevents default form submission even if Firebase takes time to load
             document.getElementById('login-form').addEventListener('submit', (e) => { 
                 e.preventDefault(); 
                 if(auth) handleAuthSubmit('login-form', false); 
@@ -484,7 +489,7 @@
             document.getElementById('forgot-password-btn').addEventListener('click', async (e) => {
                 e.preventDefault();
                 const email = document.getElementById('login-email').value;
-                if (!email) return alert('Wpisz swój email w pole powyżej.');
+                if (!email) { alert('Wpisz swój email w pole powyżej.'); return; }
                 if(auth) {
                     try { await auth.sendPasswordResetEmail(email); document.getElementById('auth-success').textContent = i18n('forgotPasswordSuccess'); document.getElementById('auth-success').classList.remove('hidden'); } 
                     catch(error) { alert('Błąd: ' + error.message); }
@@ -608,7 +613,8 @@
                 const totalExpensesBudgeted = sumByType('Expense', 'budgeted') + sumByType('Bill', 'budgeted') + sumByType('Debt', 'budgeted') + sumByType('Savings', 'budgeted');
                 const totalExpensesActual = sumByType('Expense', 'actual') + sumByType('Bill', 'actual') + sumByType('Debt', 'actual') + sumByType('Savings', 'actual');
                 
-                const amountLeftToSpend = currentFilterUserId ? (totalIncomeActual - totalExpensesActual) : (totalExpensesBudgeted - totalExpensesActual);
+                // NEW LOGIC: Left to Spend = (Real Income - Real Expenses)
+                const amountLeftToSpend = totalIncomeActual - totalExpensesActual; 
 
                 return { calculatedCategories, summaries: { totalIncomeActual, totalExpensesBudgeted, totalExpensesActual, amountLeftToSpend, totalIncomeBudgeted: sumByType('Income', 'budgeted') }, filteredTransactions };
             };
@@ -616,7 +622,10 @@
             const renderSummaryCards = (s) => {
                 document.getElementById('summary-left-to-spend').textContent = formatCurrency(s.amountLeftToSpend);
                 document.getElementById('summary-spent-so-far').textContent = formatCurrency(s.totalExpensesActual);
-                document.getElementById('summary-total-budgeted').textContent = formatCurrency(s.totalExpensesBudgeted);
+                
+                // Changed text "spent of X" to "spent of Y income"
+                document.getElementById('summary-total-income').textContent = formatCurrency(s.totalIncomeActual);
+
                 document.getElementById('summary-income-actual').textContent = formatCurrency(s.totalIncomeActual);
                 document.getElementById('summary-income-budgeted').textContent = formatCurrency(s.totalIncomeBudgeted);
                 document.getElementById('summary-expenses-actual').textContent = formatCurrency(s.totalExpensesActual);
