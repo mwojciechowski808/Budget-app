@@ -389,6 +389,16 @@
                     <button type="submit" class="bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="saveBtn">Zapisz</button>
                 </div>
             </form>
+            
+            <!-- NEW: Create New Budget Form -->
+            <hr class="border-gray-700 my-4">
+            <h3 class="text-lg font-semibold text-white mb-2" data-i18n-key="createNewBudget">Utwórz Nowy Budżet</h3>
+            <form id="create-budget-form" class="space-y-2 mb-4">
+                <div class="flex gap-2">
+                     <input type="text" id="new-budget-name" required class="flex-grow block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" data-i18n-key="newBudgetPlaceholder" placeholder="np. Wakacje 2025">
+                     <button type="submit" class="bg-brand-purple hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="createBtn">Utwórz</button>
+                </div>
+            </form>
 
             <hr class="border-gray-700 my-4">
 
@@ -430,7 +440,7 @@
         document.addEventListener('DOMContentLoaded', () => {
 
             // === 0. KONFIGURACJA FIREBASE ===
-            // !! WAŻNE !! WKLEJ SWÓJ KLUCZ TUTAJ
+            // !! WAŻNE !! - To jest Twój klucz, który mi podałeś wcześniej.
             const firebaseConfig = {
                 apiKey: "AIzaSyALc9fMeTrLKHGrImqYumKpq0QbuUkJ0Yc",
                 authDomain: "budgeting-app-25c25.firebaseapp.com",
@@ -533,7 +543,8 @@
                     budgetFor: 'Nowy budżet dla', allUsers: 'Wszyscy Użytkownicy', langPlTooltip: 'Zmień na polski', langEnTooltip: 'Switch to English', currPlnTooltip: 'Zmień na PLN', currEurTooltip: 'Change to EUR',
                     personalBudget: 'Budżet Osobisty', budgetName: 'Nazwa Budżetu', saveBtn: 'Zapisz', inviteUser: 'Zaproś Użytkownika', inviteUserDesc: 'Zaproś kogoś do współdzielenia budżetu.', inviteBtn: 'Zaproś',
                     usersInBudget: 'Użytkownicy w tym budżecie', inviteSuccess: 'Użytkownik zaproszony!', inviteErrorUserNotFound: 'Użytkownik nieznaleziony.', inviteErrorAlreadyMember: 'Użytkownik już jest w budżecie.', inviteErrorGeneric: 'Błąd zapraszania.', budgetNameUpdated: 'Nazwa zaktualizowana.',
-                    dangerZone: 'Strefa Niebezpieczna', deleteBudgetDesc: 'Usunięcie budżetu jest trwałe. Stracisz wszystkie dane.', deleteBudgetBtn: 'Usuń ten Budżet', confirmDeleteBudget: 'Czy na pewno chcesz usunąć CAŁY budżet i wszystkie dane? Tego nie można cofnąć.'
+                    dangerZone: 'Strefa Niebezpieczna', deleteBudgetDesc: 'Usunięcie budżetu jest trwałe. Stracisz wszystkie dane.', deleteBudgetBtn: 'Usuń ten Budżet', confirmDeleteBudget: 'Czy na pewno chcesz usunąć CAŁY budżet i wszystkie dane? Tego nie można cofnąć.',
+                    createNewBudget: 'Utwórz Nowy Budżet', newBudgetPlaceholder: 'np. Wakacje 2025', createBtn: 'Utwórz', budgetCreated: 'Budżet utworzony!'
                 },
                 en: {
                     welcome: "Welcome to Budget Online", login: "Log In", register: "Or Create New Account", email: "Email", password: "Password", name: "Your Name", loginBtn: "Log In", registerBtn: "Register", logout: "Logout",
@@ -553,7 +564,8 @@
                     budgetFor: 'New budget for', allUsers: 'All Users', langPlTooltip: 'Switch to Polish', langEnTooltip: 'Switch to English', currPlnTooltip: 'Switch to PLN', currEurTooltip: 'Switch to EUR',
                     personalBudget: 'Personal Budget', budgetName: 'Budget Name', saveBtn: 'Save', inviteUser: 'Invite User', inviteUserDesc: 'Invite someone to share this budget.', inviteBtn: 'Invite',
                     usersInBudget: 'Users in this budget', inviteSuccess: 'User invited!', inviteErrorUserNotFound: 'User not found.', inviteErrorAlreadyMember: 'User already member.', inviteErrorGeneric: 'Error inviting user.', budgetNameUpdated: 'Name updated.',
-                    dangerZone: 'Danger Zone', deleteBudgetDesc: 'Deleting a budget is permanent. All data will be lost.', deleteBudgetBtn: 'Delete this Budget', confirmDeleteBudget: 'Are you sure you want to delete the ENTIRE budget? This cannot be undone.'
+                    dangerZone: 'Danger Zone', deleteBudgetDesc: 'Deleting a budget is permanent. All data will be lost.', deleteBudgetBtn: 'Delete this Budget', confirmDeleteBudget: 'Are you sure you want to delete the ENTIRE budget? This cannot be undone.',
+                    createNewBudget: 'Create New Budget', newBudgetPlaceholder: 'e.g., Vacation 2025', createBtn: 'Create', budgetCreated: 'Budget created!'
                 }
             };
 
@@ -617,7 +629,6 @@
                     name: budgetName, members: [userId], owner: userId
                 });
                 
-                // NEW: Select categories based on language
                 const catsToUse = currentLang === 'pl' ? defaultCategoriesPL : defaultCategoriesEN;
                 const batch = db.batch();
                 const categoriesRef = budgetRef.collection('categories');
@@ -836,6 +847,92 @@
                 });
             };
 
+            const renderCategoryManagerList = () => {
+                const container = document.getElementById('category-manager-list');
+                const typeKeys = { 'Income': 'catTypeIncome', 'Expense': 'catTypeExpense', 'Bill': 'catTypeBill', 'Debt': 'catTypeDebt', 'Savings': 'catTypeSavings' };
+
+                container.innerHTML = localCategories.map(cat => `
+                    <div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                        <div>
+                            <p class="font-medium text-white">${cat.name}</p>
+                            <p class="text-sm text-gray-400">${i18n(typeKeys[cat.type])} &bull; ${i18n('defaultBudget')}: ${formatCurrency(cat.budgeted)}</p>
+                        </div>
+                        <div class="space-x-2 flex-shrink-0 ml-4">
+                            <button data-id="${cat.id}" class="edit-cat-btn text-brand-teal hover:text-teal-400 font-medium text-sm" data-i18n-key="edit">Edytuj</button>
+                            <button data-id="${cat.id}" class="delete-cat-btn text-red-500 hover:text-red-400 font-medium text-sm" data-i18n-key="delete">Usuń</button>
+                        </div>
+                    </div>
+                `).join('');
+            };
+            
+            const renderBudgetManagerList = () => {
+                const container = document.getElementById('budget-user-list');
+                container.innerHTML = localBudgetMembers.map(userId => `
+                    <div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                        <p class="font-medium text-white">${localUsers[userId] || i18n('unknownUser')}</p>
+                    </div>
+                `).join('');
+            };
+
+            const populateCategorySelect = () => {
+                const sel = document.getElementById('trans-category');
+                const keys = { 'Income': 'catGroupIncome', 'Expense': 'catGroupExpense', 'Bill': 'catGroupBill', 'Debt': 'catGroupDebt', 'Savings': 'catGroupSavings' };
+                sel.innerHTML = `<option value="" disabled selected>${i18n('selectCategory')}</option>`;
+                Object.keys(keys).forEach(k => {
+                    const grp = document.createElement('optgroup'); grp.label = i18n(keys[k]);
+                    localCategories.filter(c => c.type === k).forEach(c => grp.appendChild(new Option(c.name, c.id)));
+                    sel.appendChild(grp);
+                });
+            };
+            
+            const populateUserFilterSelect = () => {
+                const select = document.getElementById('filter-user-select');
+                select.innerHTML = `<option value="">${i18n('allUsers')}</option>`;
+                localBudgetMembers.forEach(userId => {
+                    const option = document.createElement('option');
+                    option.value = userId;
+                    option.textContent = localUsers[userId] || i18n('unknownUser');
+                    select.appendChild(option);
+                });
+                select.value = currentFilterUserId || '';
+            };
+
+            const populateDateControls = () => {
+                document.getElementById('trans-date').valueAsDate = new Date();
+                const monthSelect = document.getElementById('month-select');
+                const yearSelect = document.getElementById('year-select');
+                const months = i18n('monthNames');
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth(); // 0-11
+                
+                if(currentMonthKey === '') {
+                    currentMonthKey = `${currentMonth}-${currentYear}`;
+                }
+
+                monthSelect.innerHTML = '';
+                months.forEach((month, i) => {
+                    monthSelect.add(new Option(month, i));
+                });
+                
+                yearSelect.innerHTML = '';
+                [currentYear - 2, currentYear - 1, currentYear, currentYear + 1, currentYear + 2].forEach(year => {
+                    yearSelect.add(new Option(year, year));
+                });
+
+                const [monthFromKey, yearFromKey] = currentMonthKey.split('-').map(Number);
+                monthSelect.value = monthFromKey;
+                yearSelect.value = yearFromKey;
+            };
+            
+            const populateCategoryTypeSelect = () => {
+                const select = document.getElementById('cat-form-type');
+                const typeKeys = { 'Income': 'catTypeIncome', 'Expense': 'catTypeExpense', 'Bill': 'catTypeBill', 'Debt': 'catTypeDebt', 'Savings': 'catTypeSavings' };
+                select.innerHTML = '';
+                Object.entries(typeKeys).forEach(([key, i18nKey]) => {
+                    select.add(new Option(i18n(i18nKey), key));
+                });
+            };
+
             // === 6. WYKRESY ===
             const initCharts = (data) => {
                 const { calculatedCategories } = data;
@@ -883,16 +980,23 @@
             document.getElementById('register-form').addEventListener('submit', (e) => { e.preventDefault(); handleAuthSubmit('register-form', true); });
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
 
+            // NEW: Create Budget Logic
+            document.getElementById('create-budget-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('new-budget-name').value;
+                if(name) {
+                    await createPersonalBudget(currentUser.uid, currentUser.email.split('@')[0], name);
+                    document.getElementById('new-budget-name').value = '';
+                    showMessage('budgetCreated', 'success');
+                    hideModal('budget-manager-modal');
+                }
+            });
+
             // Delete Budget Logic
             document.getElementById('delete-budget-btn').addEventListener('click', async () => {
                 if(confirm(i18n('confirmDeleteBudget'))) {
                     try {
-                        const batch = db.batch();
-                        // Na kliencie nie możemy usunąć kolekcji rekurencyjnie, więc usuwamy tylko to co mamy załadowane lokalnie w cache 
-                        // lub po prostu usuwamy dokument budżetu i liczymy, że backend (jeśli byłby) posprząta.
-                        // Dla bezpieczeństwa klienta: usuwamy dokument budżetu. Subkolekcje staną się sierotami (standard Firestore).
                         await db.collection('budgets').doc(currentBudgetId).delete();
-                        // Odświeżenie listy budżetów nastąpi automatycznie przez listener.
                         hideModal('budget-manager-modal');
                     } catch (e) {
                         console.error(e);
@@ -941,7 +1045,6 @@
             initAuthListener();
             
             // ... (Reszta handlerów transakcji, kategorii, budżetu - bez większych zmian logicznych) ...
-            // Skrócone dla czytelności, bo logika jest taka sama jak w poprzednim pliku, tylko używa nowych zmiennych.
             
             document.getElementById('fab-add-transaction').onclick = () => {
                  document.getElementById('transaction-form').reset();
@@ -1006,6 +1109,9 @@
             // Filter
             document.getElementById('filter-user-select').onchange = (e) => { currentFilterUserId = e.target.value || null; updateAllUI(); };
             
+            // POPRAWKA: Zdefiniowano containerIds globalnie
+            const containerIds = ['income-table-container', 'expenses-table-container', 'bills-table-container', 'debt-table-container', 'savings-table-container'];
+
             const updateAllUI = () => {
                 if(!currentUser || !currentBudgetId) return;
                 const data = calculateAll();
@@ -1022,6 +1128,35 @@
 
                 initCharts(data);
             };
+
+            // Budget editing logic fix
+            const handleBudgetEdit = async (e) => {
+                if (e.target.classList.contains('budget-value')) {
+                    const catId = e.target.dataset.id;
+                    const category = localCategories.find(c => c.id === catId);
+                    const currentBudget = getBudgetedAmount(catId);
+                    
+                    if (category) {
+                        const newBudgetValue = prompt(`${i18n('budgetFor')} "${category.name}":`, currentBudget);
+                        if (newBudgetValue === null) return;
+
+                        const newAmount = parseFloat(newBudgetValue.replace(',', '.'));
+                        
+                        if (!isNaN(newAmount) && newAmount >= 0) {
+                            try {
+                                const budgetDocRef = db.collection('budgets').doc(currentBudgetId).collection('monthlyBudgets').doc(currentMonthKey);
+                                await budgetDocRef.set({ [catId]: newAmount }, { merge: true });
+                                showMessage('budgetUpdated', 'success');
+                            } catch (err) {
+                                console.error("Błąd aktualizacji budżetu:", err);
+                            }
+                        } else {
+                            showMessage('invalidAmount', 'error');
+                        }
+                    }
+                }
+            };
+            containerIds.forEach(id => document.getElementById(id).addEventListener('click', handleBudgetEdit));
         });
     </script>
 </body>
