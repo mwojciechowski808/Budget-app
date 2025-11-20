@@ -363,14 +363,79 @@
             };
             
             let app, auth, db;
+            
+            // GLOBAL DOM DEFINITIONS (Moved here to ensure availability)
+            const authContainer = document.getElementById('auth-container');
+            const appContainer = document.getElementById('app-container');
+            const fab = document.getElementById('fab-add-transaction');
+            const budgetSelect = document.getElementById('budget-select');
+            const containerIds = ['income-table-container', 'expenses-table-container', 'bills-table-container', 'debt-table-container', 'savings-table-container'];
+
+            // Define Form Handlers Early
+            const handleAuthSubmit = async (formId, isRegister) => {
+                const email = document.getElementById(isRegister ? 'register-email' : 'login-email').value;
+                const pass = document.getElementById(isRegister ? 'register-password' : 'login-password').value;
+                const errorBox = document.getElementById('auth-error');
+                
+                // Basic Validation
+                if (!email || !pass) {
+                    errorBox.textContent = i18n('fillAllFields');
+                    errorBox.classList.remove('hidden');
+                    return;
+                }
+                
+                try {
+                    errorBox.classList.add('hidden');
+                    if(isRegister) {
+                        const name = document.getElementById('register-name').value;
+                        if(!name) throw new Error("Name required");
+                        const cred = await auth.createUserWithEmailAndPassword(email, pass);
+                        await db.collection('users').doc(cred.user.uid).set({ name, email });
+                    } else {
+                        await auth.signInWithEmailAndPassword(email, pass);
+                    }
+                } catch(err) {
+                    console.error("Auth Error:", err);
+                    if (err.code === 'auth/email-already-in-use') {
+                        errorBox.textContent = "Ten email jest już zajęty.";
+                    } else if (err.code === 'auth/weak-password') {
+                        errorBox.textContent = "Hasło jest za słabe (min. 6 znaków).";
+                    } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+                        errorBox.textContent = "Błędny email lub hasło.";
+                    } else {
+                        errorBox.textContent = "Błąd: " + err.message;
+                    }
+                    errorBox.classList.remove('hidden');
+                }
+            };
+
+            // Attach Listeners IMMEDIATELY to prevent form submission refresh
+            document.getElementById('login-form').addEventListener('submit', (e) => { 
+                e.preventDefault(); 
+                if(auth) handleAuthSubmit('login-form', false); 
+            });
+            document.getElementById('register-form').addEventListener('submit', (e) => { 
+                e.preventDefault(); 
+                if(auth) handleAuthSubmit('register-form', true); 
+            });
+            document.getElementById('forgot-password-btn').addEventListener('click', async (e) => {
+                e.preventDefault(); // Prevent default just in case
+                const email = document.getElementById('login-email').value;
+                if (!email) { alert('Wpisz swój email w pole powyżej.'); return; }
+                if(auth) {
+                    try { await auth.sendPasswordResetEmail(email); document.getElementById('auth-success').textContent = i18n('forgotPasswordSuccess'); document.getElementById('auth-success').classList.remove('hidden'); } 
+                    catch(error) { alert('Błąd: ' + error.message); }
+                }
+            });
+
             try {
                 app = firebase.initializeApp(firebaseConfig);
                 auth = firebase.auth();
                 db = firebase.firestore();
             } catch (e) {
                 console.error("Błąd inicjalizacji Firebase:", e);
-                alert("BŁĄD KRYTYCZNY: Nie udało się połączyć z Firebase. Sprawdź konsolę.");
-                return;
+                alert("BŁĄD: Problem z połączeniem do bazy danych. Sprawdź konsolę.");
+                return; // Stop execution if firebase fails
             }
 
             // === 1. STAN APLIKACJI ===
@@ -386,19 +451,11 @@
             let localTransactions = [];
             let localCategories = [];
             let localMonthlyBudgets = {};
-            // FIXED: Define GLOBAL containerIds once, at the top
-            const containerIds = ['income-table-container', 'expenses-table-container', 'bills-table-container', 'debt-table-container', 'savings-table-container'];
 
             // Nasłuchiwacze
             let unsubscribeAuth = () => {};
             let unsubscribeBudgetsList = () => {};
             let unsubscribeActiveBudget = () => {};
-
-            // DOM
-            const authContainer = document.getElementById('auth-container');
-            const appContainer = document.getElementById('app-container');
-            const fab = document.getElementById('fab-add-transaction');
-            const budgetSelect = document.getElementById('budget-select');
 
             // Wykresy
             let spendingDoughnutChart, budgetBarChart;
@@ -434,8 +491,6 @@
                 const batch = db.batch();
                 const categoriesRef = budgetRef.collection('categories');
                 catsToUse.forEach(cat => batch.set(categoriesRef.doc(), cat));
-                
-                // Removed automatic seeding here to keep it clean. Use the button instead.
                 await batch.commit();
                 return budgetRef.id;
             };
@@ -629,28 +684,7 @@
                 budgetBarChart = new Chart(bCtx, { type: 'bar', data: { labels: bData.map(c => c.name), datasets: [{ label: i18n('chartBudgeted'), data: bData.map(c => c.budgeted), backgroundColor: '#374151', borderRadius: 4 }, { label: i18n('chartSpent'), data: bData.map(c => c.actual), backgroundColor: '#a855f7', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#374151' }, ticks: { color: '#9ca3af', font: { family: 'Inter' } } }, x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { family: 'Inter' } } } }, plugins: { legend: { position: 'top', labels: { color: '#d1d5db', font: { family: 'Inter' } } } } } });
             };
 
-            const handleAuthSubmit = async (formId, isRegister) => {
-                const email = document.getElementById(isRegister ? 'register-email' : 'login-email').value;
-                const pass = document.getElementById(isRegister ? 'register-password' : 'login-password').value;
-                const errorBox = document.getElementById('auth-error');
-                try {
-                    errorBox.classList.add('hidden');
-                    if(isRegister) {
-                        const name = document.getElementById('register-name').value;
-                        if(!name) throw new Error("Name required");
-                        const cred = await auth.createUserWithEmailAndPassword(email, pass);
-                        await db.collection('users').doc(cred.user.uid).set({ name, email });
-                    } else { await auth.signInWithEmailAndPassword(email, pass); }
-                } catch(err) { errorBox.textContent = i18n(isRegister ? 'authErrorRegister' : 'authErrorLogin'); errorBox.classList.remove('hidden'); }
-            };
-            document.getElementById('login-form').onsubmit = (e) => { e.preventDefault(); handleAuthSubmit('login-form', false); };
-            document.getElementById('register-form').onsubmit = (e) => { e.preventDefault(); handleAuthSubmit('register-form', true); };
             document.getElementById('logout-btn').onclick = () => auth.signOut();
-            document.getElementById('forgot-password-btn').onclick = async () => {
-                const email = document.getElementById('login-email').value;
-                if (!email) return alert('Podaj email');
-                try { await auth.sendPasswordResetEmail(email); document.getElementById('auth-success').textContent = i18n('forgotPasswordSuccess'); document.getElementById('auth-success').classList.remove('hidden'); } catch(e) { alert(e.message); }
-            };
 
             document.getElementById('create-budget-form').onsubmit = async (e) => { e.preventDefault(); const name = document.getElementById('new-budget-name').value; if(name) { await createPersonalBudget(currentUser.uid, currentUser.email.split('@')[0], name); showMessage('budgetCreated', 'success'); hideModal('budget-manager-modal'); } };
             document.getElementById('delete-budget-btn').onclick = async () => { if(confirm(i18n('confirmDeleteBudget'))) { await db.collection('budgets').doc(currentBudgetId).delete(); hideModal('budget-manager-modal'); } };
@@ -699,7 +733,6 @@
             document.getElementById('filter-user-select').onchange = (e) => { currentFilterUserId = e.target.value || null; updateAllUI(); };
             const handleDateChange = (e) => {
                 currentMonthKey = `${document.getElementById('month-select').value}-${document.getElementById('year-select').value}`;
-                // FIX: Call updateAllUI IMMEDIATELY to clear old month data from view
                 updateAllUI();
                 const ref = db.collection('budgets').doc(currentBudgetId).collection('monthlyBudgets').doc(currentMonthKey);
                 ref.get().then(d => { if(!d.exists) { const n={}; localCategories.forEach(c=>n[c.id]=c.budgeted||0); ref.set(n); } });
