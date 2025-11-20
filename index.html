@@ -350,7 +350,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-
+            
             // === 0. KONFIGURACJA FIREBASE ===
             const firebaseConfig = {
                 apiKey: "AIzaSyALc9fMeTrLKHGrImqYumKpq0QbuUkJ0Yc",
@@ -364,79 +364,12 @@
             
             let app, auth, db;
             
-            // GLOBAL DOM DEFINITIONS (Moved here to ensure availability)
+            // DEFINE GLOBALS FIRST to prevent ReferenceErrors
             const authContainer = document.getElementById('auth-container');
             const appContainer = document.getElementById('app-container');
             const fab = document.getElementById('fab-add-transaction');
             const budgetSelect = document.getElementById('budget-select');
             const containerIds = ['income-table-container', 'expenses-table-container', 'bills-table-container', 'debt-table-container', 'savings-table-container'];
-
-            // Define Form Handlers Early
-            const handleAuthSubmit = async (formId, isRegister) => {
-                const email = document.getElementById(isRegister ? 'register-email' : 'login-email').value;
-                const pass = document.getElementById(isRegister ? 'register-password' : 'login-password').value;
-                const errorBox = document.getElementById('auth-error');
-                
-                // Basic Validation
-                if (!email || !pass) {
-                    errorBox.textContent = i18n('fillAllFields');
-                    errorBox.classList.remove('hidden');
-                    return;
-                }
-                
-                try {
-                    errorBox.classList.add('hidden');
-                    if(isRegister) {
-                        const name = document.getElementById('register-name').value;
-                        if(!name) throw new Error("Name required");
-                        const cred = await auth.createUserWithEmailAndPassword(email, pass);
-                        await db.collection('users').doc(cred.user.uid).set({ name, email });
-                    } else {
-                        await auth.signInWithEmailAndPassword(email, pass);
-                    }
-                } catch(err) {
-                    console.error("Auth Error:", err);
-                    if (err.code === 'auth/email-already-in-use') {
-                        errorBox.textContent = "Ten email jest już zajęty.";
-                    } else if (err.code === 'auth/weak-password') {
-                        errorBox.textContent = "Hasło jest za słabe (min. 6 znaków).";
-                    } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-                        errorBox.textContent = "Błędny email lub hasło.";
-                    } else {
-                        errorBox.textContent = "Błąd: " + err.message;
-                    }
-                    errorBox.classList.remove('hidden');
-                }
-            };
-
-            // Attach Listeners IMMEDIATELY to prevent form submission refresh
-            document.getElementById('login-form').addEventListener('submit', (e) => { 
-                e.preventDefault(); 
-                if(auth) handleAuthSubmit('login-form', false); 
-            });
-            document.getElementById('register-form').addEventListener('submit', (e) => { 
-                e.preventDefault(); 
-                if(auth) handleAuthSubmit('register-form', true); 
-            });
-            document.getElementById('forgot-password-btn').addEventListener('click', async (e) => {
-                e.preventDefault(); // Prevent default just in case
-                const email = document.getElementById('login-email').value;
-                if (!email) { alert('Wpisz swój email w pole powyżej.'); return; }
-                if(auth) {
-                    try { await auth.sendPasswordResetEmail(email); document.getElementById('auth-success').textContent = i18n('forgotPasswordSuccess'); document.getElementById('auth-success').classList.remove('hidden'); } 
-                    catch(error) { alert('Błąd: ' + error.message); }
-                }
-            });
-
-            try {
-                app = firebase.initializeApp(firebaseConfig);
-                auth = firebase.auth();
-                db = firebase.firestore();
-            } catch (e) {
-                console.error("Błąd inicjalizacji Firebase:", e);
-                alert("BŁĄD: Problem z połączeniem do bazy danych. Sprawdź konsolę.");
-                return; // Stop execution if firebase fails
-            }
 
             // === 1. STAN APLIKACJI ===
             let currentLang = 'pl';
@@ -451,6 +384,123 @@
             let localTransactions = [];
             let localCategories = [];
             let localMonthlyBudgets = {};
+            
+            // Słownik Tłumaczeń
+            const translations = {
+                pl: {
+                    welcome: "Witaj w Budżecie Online", login: "Zaloguj się", register: "Lub utwórz nowe konto", email: "Email", password: "Hasło", name: "Twoje imię", loginBtn: "Zaloguj się", registerBtn: "Zarejestruj się", logout: "Wyloguj",
+                    authErrorLogin: "Logowanie nie powiodło się. Sprawdź email i hasło.", authErrorRegister: "Rejestracja nie powiodła się. Hasło min. 6 znaków.",
+                    exportCSV: "Eksportuj CSV", exportSummary: "Podsumowanie Roczne CSV", exportTransactions: "Transakcje (Roczne) CSV", defaultBudget: "Domyślny Budżet",
+                    dashboardTitle: 'Miesięczny Panel Budżetu', leftToSpend: 'Pozostało do wydania', totalIncome: 'Całkowity Przychód', totalExpenses: 'Całkowite Wydatki',
+                    spendingAnalysis: 'Analiza Wydatków', budgetVsSpent: 'Budżet vs. Wydatki', budgetCategories: 'Kategorie Budżetowe', addTransaction: 'Dodaj Transakcję',
+                    recentTransactions: 'Ostatnie Transakcje', manageBudget: 'Zarządzaj Budżetem', yearlySummary: 'Podsumowanie Roczne', manageCategories: 'Zarządzaj Kategoriami',
+                    addTransactionBtn: 'Dodaj Transakcję', description: 'Opis', descriptionPlaceholder: 'np. Zakupy spożywcze', amount: 'Kwota', category: 'Kategoria', selectCategory: 'Wybierz kategorię...',
+                    date: 'Data', noTransactions: 'Nie dodano jeszcze żadnych transakcji.', spentOf: 'wydano z', budgeted: 'Zabudżetowano', manageCategoriesTitle: 'Zarządzaj Kategoriami', manageBudgetTitle: 'Zarządzaj Budżetem',
+                    newCategoryPlaceholder: 'np. Nowa Kategoria', addCategoryBtn: 'Dodaj Kategorię', cancelEditBtn: 'Anuluj Edycję', saveChangesBtn: 'Zapisz Zmiany', edit: 'Edytuj', delete: 'Usuń',
+                    yearlySummaryTitle: 'Podsumowanie Roczne', month: 'Miesiąc', savings: 'Oszczędności', total: 'ŁĄCZNIE', transactionAdded: 'Transakcja dodana pomyślnie!', transactionDeleted: 'Transakcja usunięta.',
+                    budgetUpdated: 'Budżet zaktualizowany.', invalidAmount: 'Błędna kwota.', categoryAdded: 'Kategoria dodana.', categoryUpdated: 'Kategoria zaktualizowana.', categoryDeleted: 'Kategoria usunięta.',
+                    categoryDeleteError: 'Nie można usunąć kategorii, ponieważ ma transakcje.', fillAllFields: 'Wypełnij wszystkie pola.', invalidCategory: 'Wybierz kategorię.', newMonthSheet: 'Nowy miesiąc utworzony.',
+                    confirmDelete: 'Czy na pewno chcesz usunąć?', chartBudgeted: 'Zabudżetowano', chartSpent: 'Wydano', catTypeIncome: 'Przychód', catTypeExpense: 'Wydatek', catTypeBill: 'Rachunek', catTypeDebt: 'Dług', catTypeSavings: 'Oszczędności',
+                    catGroupIncome: 'Przychody', catGroupExpense: 'Wydatki', catGroupBill: 'Rachunki', catGroupDebt: 'Długi', catGroupSavings: 'Oszczędności',
+                    monthNames: ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"],
+                    unknownUser: 'Nieznany', deletedCategory: 'Usunięta Kategoria', transactionSaveError: 'Błąd zapisu.', clickToEditBudget: 'Kliknij, aby edytować', deleteTransactionTooltip: 'Usuń transakcję',
+                    budgetFor: 'Nowy budżet dla', allUsers: 'Wszyscy Użytkownicy', langPlTooltip: 'Zmień na polski', langEnTooltip: 'Switch to English', currPlnTooltip: 'Zmień na PLN', currEurTooltip: 'Change to EUR',
+                    personalBudget: 'Budżet Osobisty', budgetName: 'Nazwa Budżetu', saveBtn: 'Zapisz', inviteUser: 'Zaproś Użytkownika', inviteUserDesc: 'Zaproś kogoś do współdzielenia budżetu.', inviteBtn: 'Zaproś',
+                    usersInBudget: 'Użytkownicy w tym budżecie', inviteSuccess: 'Użytkownik zaproszony!', inviteErrorUserNotFound: 'Użytkownik nieznaleziony.', inviteErrorAlreadyMember: 'Użytkownik już jest w budżecie.', inviteErrorGeneric: 'Błąd zapraszania.', budgetNameUpdated: 'Nazwa zaktualizowana.',
+                    dangerZone: 'Strefa Niebezpieczna', deleteBudgetDesc: 'Usunięcie budżetu jest trwałe. Stracisz wszystkie dane.', deleteBudgetBtn: 'Usuń ten Budżet', confirmDeleteBudget: 'Czy na pewno chcesz usunąć CAŁY budżet i wszystkie dane? Tego nie można cofnąć.',
+                    createNewBudget: 'Utwórz Nowy Budżet', newBudgetPlaceholder: 'np. Wakacje 2025', createBtn: 'Utwórz', budgetCreated: 'Budżet utworzony!',
+                    forgotPassword: 'Zapomniałeś hasła?', forgotPasswordSuccess: 'E-mail resetujący wysłany!'
+                },
+                en: {
+                    welcome: "Welcome to Budget Online", login: "Log In", register: "Or Create New Account", email: "Email", password: "Password", name: "Your Name", loginBtn: "Log In", registerBtn: "Register", logout: "Logout",
+                    authErrorLogin: "Login failed.", authErrorRegister: "Registration failed.", exportCSV: "Export CSV", exportSummary: "Yearly Summary CSV", exportTransactions: "Transactions CSV", defaultBudget: "Default Budget",
+                    dashboardTitle: 'Monthly Budget Dashboard', leftToSpend: 'Amount Left to Spend', totalIncome: 'Total Income', totalExpenses: 'Total Expenses', spendingAnalysis: 'Spending Analysis', budgetVsSpent: 'Budget vs. Spent',
+                    budgetCategories: 'Budget Categories', addTransaction: 'Add Transaction', recentTransactions: 'Recent Transactions', manageBudget: 'Manage Budget', yearlySummary: 'Yearly Summary', manageCategories: 'Manage Categories',
+                    addTransactionBtn: 'Add Transaction', description: 'Description', descriptionPlaceholder: 'e.g., Groceries', amount: 'Amount', category: 'Category', selectCategory: 'Select a category...',
+                    date: 'Date', noTransactions: 'No transactions added yet.', spentOf: 'spent of', budgeted: 'Budgeted', manageCategoriesTitle: 'Manage Categories', manageBudgetTitle: 'Manage Budget',
+                    newCategoryPlaceholder: 'e.g., New Category', addCategoryBtn: 'Add Category', cancelEditBtn: 'Cancel Edit', saveChangesBtn: 'Save Changes', edit: 'Edit', delete: 'Delete',
+                    yearlySummaryTitle: 'Yearly Summary', month: 'Month', savings: 'Savings', total: 'TOTAL', transactionAdded: 'Transaction added!', transactionDeleted: 'Transaction deleted.',
+                    budgetUpdated: 'Budget updated.', invalidAmount: 'Invalid amount.', categoryAdded: 'Category added.', categoryUpdated: 'Category updated.', categoryDeleted: 'Category deleted.',
+                    categoryDeleteError: 'Cannot delete used category.', fillAllFields: 'Fill all fields.', invalidCategory: 'Select category.', newMonthSheet: 'New month created.',
+                    confirmDelete: 'Are you sure?', chartBudgeted: 'Budgeted', chartSpent: 'Spent', catTypeIncome: 'Income', catTypeExpense: 'Expense', catTypeBill: 'Bill', catTypeDebt: 'Debt', catTypeSavings: 'Savings',
+                    catGroupIncome: 'Income', catGroupExpense: 'Expenses', catGroupBill: 'Bills', catGroupDebt: 'Debt', catGroupSavings: 'Savings',
+                    monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+                    unknownUser: 'Unknown', deletedCategory: 'Deleted Category', transactionSaveError: 'Save error.', clickToEditBudget: 'Click to edit', deleteTransactionTooltip: 'Delete',
+                    budgetFor: 'New budget for', allUsers: 'All Users', langPlTooltip: 'Switch to Polish', langEnTooltip: 'Switch to English', currPlnTooltip: 'Switch to PLN', currEurTooltip: 'Switch to EUR',
+                    personalBudget: 'Personal Budget', budgetName: 'Budget Name', saveBtn: 'Save', inviteUser: 'Invite User', inviteUserDesc: 'Invite someone to share this budget.', inviteBtn: 'Invite',
+                    usersInBudget: 'Users in this budget', inviteSuccess: 'User invited!', inviteErrorUserNotFound: 'User not found.', inviteErrorAlreadyMember: 'User already member.', inviteErrorGeneric: 'Error inviting user.', budgetNameUpdated: 'Name updated.',
+                    dangerZone: 'Danger Zone', deleteBudgetDesc: 'Deleting a budget is permanent. All data will be lost.', deleteBudgetBtn: 'Delete this Budget', confirmDeleteBudget: 'Are you sure you want to delete the ENTIRE budget? This cannot be undone.',
+                    createNewBudget: 'Create New Budget', newBudgetPlaceholder: 'e.g., Vacation 2025', createBtn: 'Create', budgetCreated: 'Budget created!',
+                    forgotPassword: 'Forgot Password?', forgotPasswordSuccess: 'Reset email sent!'
+                }
+            };
+
+            const i18n = (key, replacements = {}) => { let text = translations[currentLang][key] || key; for (const [placeholder, value] of Object.entries(replacements)) { text = text.replace(`{${placeholder}}`, value); } return text; };
+            const formatCurrency = (value) => { if (typeof value !== 'number') value = 0; const locale = currentLang === 'pl' ? 'pl-PL' : 'en-IE'; return new Intl.NumberFormat(locale, { style: 'currency', currency: currentCurrency }).format(value); };
+            const formatDate = (dateString) => { const locale = currentLang === 'pl' ? 'pl-PL' : 'en-GB'; return new Date(dateString).toLocaleDateString(locale); };
+            const showMessage = (key, type = 'success', replacements = {}) => { const mb = document.getElementById('message-box'); mb.textContent = i18n(key, replacements); mb.className = `p-4 text-sm rounded-lg ${type === 'success' ? 'bg-teal-100 text-teal-900' : 'bg-red-100 text-red-900'}`; mb.classList.remove('hidden'); setTimeout(() => mb.classList.add('hidden'), 3000); };
+            const showModal = (id) => { const el = document.getElementById(id); el.classList.remove('hidden'); setTimeout(() => { el.classList.remove('opacity-0'); el.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0'); }, 10); };
+            const hideModal = (id) => { const el = document.getElementById(id); el.classList.add('opacity-0'); el.querySelector('.modal-content').classList.add('scale-95', 'opacity-0'); setTimeout(() => el.classList.add('hidden'), 300); };
+
+            // === AUTH HANDLER DEFINED EARLY ===
+            const handleAuthSubmit = async (formId, isRegister) => {
+                const email = document.getElementById(isRegister ? 'register-email' : 'login-email').value;
+                const pass = document.getElementById(isRegister ? 'register-password' : 'login-password').value;
+                const errorBox = document.getElementById('auth-error');
+                
+                try {
+                    errorBox.classList.add('hidden');
+                    if(isRegister) {
+                        const name = document.getElementById('register-name').value;
+                        if(!name) throw new Error("Name required");
+                        const cred = await auth.createUserWithEmailAndPassword(email, pass);
+                        await db.collection('users').doc(cred.user.uid).set({ name, email });
+                    } else {
+                        await auth.signInWithEmailAndPassword(email, pass);
+                    }
+                } catch(err) {
+                    console.error("Auth Error", err);
+                    // Better Error Messages
+                    if (err.code === 'auth/email-already-in-use') errorBox.textContent = "Ten email jest już zajęty. Zaloguj się.";
+                    else if (err.code === 'auth/weak-password') errorBox.textContent = "Hasło jest za słabe (min. 6 znaków).";
+                    else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') errorBox.textContent = "Nieprawidłowy email lub hasło.";
+                    else errorBox.textContent = "Błąd: " + err.message;
+                    
+                    errorBox.classList.remove('hidden');
+                }
+            };
+
+            // === ATTACH LISTENERS IMMEDIATELY ===
+            // Prevents default form submission even if Firebase takes time to load
+            document.getElementById('login-form').addEventListener('submit', (e) => { 
+                e.preventDefault(); 
+                if(auth) handleAuthSubmit('login-form', false); 
+            });
+            document.getElementById('register-form').addEventListener('submit', (e) => { 
+                e.preventDefault(); 
+                if(auth) handleAuthSubmit('register-form', true); 
+            });
+            document.getElementById('logout-btn').addEventListener('click', () => auth && auth.signOut());
+            document.getElementById('forgot-password-btn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                if (!email) return alert('Wpisz swój email w pole powyżej.');
+                if(auth) {
+                    try { await auth.sendPasswordResetEmail(email); document.getElementById('auth-success').textContent = i18n('forgotPasswordSuccess'); document.getElementById('auth-success').classList.remove('hidden'); } 
+                    catch(error) { alert('Błąd: ' + error.message); }
+                }
+            });
+
+            // === INITIALIZE FIREBASE ===
+            try {
+                app = firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                db = firebase.firestore();
+            } catch (e) {
+                console.error("Błąd inicjalizacji Firebase:", e);
+                alert("BŁĄD: Problem z połączeniem do bazy danych. Sprawdź konsolę.");
+                return;
+            }
 
             // Nasłuchiwacze
             let unsubscribeAuth = () => {};
@@ -465,18 +515,6 @@
             const defaultCategoriesPL = [{ name: 'Wypłata', type: 'Income', budgeted: 4500 }, { name: 'Freelance', type: 'Income', budgeted: 300 }, { name: 'Zakupy spożywcze', type: 'Expense', budgeted: 600 }, { name: 'Restauracje', type: 'Expense', budgeted: 250 }, { name: 'Paliwo', type: 'Expense', budgeted: 150 }, { name: 'Rozrywka', type: 'Expense', budgeted: 200 }, { name: 'Zakupy', type: 'Expense', budgeted: 150 }, { name: 'Czynsz/Kredyt', type: 'Bill', budgeted: 1800 }, { name: 'Media', type: 'Bill', budgeted: 200 }, { name: 'Internet', type: 'Bill', budgeted: 60 }, { name: 'Telefon', type: 'Bill', budgeted: 80 }, { name: 'Ubezp. samochodu', type: 'Bill', budgeted: 120 }, { name: 'Kredyt studencki', type: 'Debt', budgeted: 150 }, { name: 'Karta kredytowa', type: 'Debt', budgeted: 100 }, { name: 'Fundusz awaryjny', type: 'Savings', budgeted: 300 }, { name: 'Fundusz wakacyjny', type: 'Savings', budgeted: 100 }];
             const defaultCategoriesEN = [{ name: 'Paycheck', type: 'Income', budgeted: 4500 }, { name: 'Freelance', type: 'Income', budgeted: 300 }, { name: 'Groceries', type: 'Expense', budgeted: 600 }, { name: 'Restaurants', type: 'Expense', budgeted: 250 }, { name: 'Gas/Fuel', type: 'Expense', budgeted: 150 }, { name: 'Entertainment', type: 'Expense', budgeted: 200 }, { name: 'Shopping', type: 'Expense', budgeted: 150 }, { name: 'Rent/Mortgage', type: 'Bill', budgeted: 1800 }, { name: 'Utilities', type: 'Bill', budgeted: 200 }, { name: 'Internet', type: 'Bill', budgeted: 60 }, { name: 'Phone', type: 'Bill', budgeted: 80 }, { name: 'Car Insurance', type: 'Bill', budgeted: 120 }, { name: 'Student Loan', type: 'Debt', budgeted: 150 }, { name: 'Credit Card', type: 'Debt', budgeted: 100 }, { name: 'Emergency Fund', type: 'Savings', budgeted: 300 }, { name: 'Vacation Fund', type: 'Savings', budgeted: 100 }];
             
-            const translations = {
-                pl: { welcome: "Witaj w Budżecie Online", login: "Zaloguj się", register: "Lub utwórz nowe konto", email: "Email", password: "Hasło", name: "Twoje imię", loginBtn: "Zaloguj się", registerBtn: "Zarejestruj się", logout: "Wyloguj", authErrorLogin: "Logowanie nie powiodło się. Sprawdź email i hasło.", authErrorRegister: "Rejestracja nie powiodła się. Hasło min. 6 znaków.", exportCSV: "Eksportuj CSV", exportSummary: "Podsumowanie Roczne CSV", exportTransactions: "Transakcje (Roczne) CSV", defaultBudget: "Domyślny Budżet", dashboardTitle: 'Miesięczny Panel Budżetu', leftToSpend: 'Pozostało do wydania', totalIncome: 'Całkowity Przychód', totalExpenses: 'Całkowite Wydatki', spendingAnalysis: 'Analiza Wydatków', budgetVsSpent: 'Budżet vs. Wydatki', budgetCategories: 'Kategorie Budżetowe', addTransaction: 'Dodaj Transakcję', recentTransactions: 'Ostatnie Transakcje', manageBudget: 'Zarządzaj Budżetem', yearlySummary: 'Podsumowanie Roczne', manageCategories: 'Zarządzaj Kategoriami', addTransactionBtn: 'Dodaj Transakcję', description: 'Opis', descriptionPlaceholder: 'np. Zakupy spożywcze', amount: 'Kwota', category: 'Kategoria', selectCategory: 'Wybierz kategorię...', date: 'Data', noTransactions: 'Nie dodano jeszcze żadnych transakcji.', spentOf: 'wydano z', budgeted: 'Zabudżetowano', manageCategoriesTitle: 'Zarządzaj Kategoriami', manageBudgetTitle: 'Zarządzaj Budżetem', newCategoryPlaceholder: 'np. Nowa Kategoria', addCategoryBtn: 'Dodaj Kategorię', cancelEditBtn: 'Anuluj Edycję', saveChangesBtn: 'Zapisz Zmiany', edit: 'Edytuj', delete: 'Usuń', yearlySummaryTitle: 'Podsumowanie Roczne', month: 'Miesiąc', savings: 'Oszczędności', total: 'ŁĄCZNIE', transactionAdded: 'Transakcja dodana pomyślnie!', transactionDeleted: 'Transakcja usunięta.', budgetUpdated: 'Budżet zaktualizowany.', invalidAmount: 'Błędna kwota.', categoryAdded: 'Kategoria dodana.', categoryUpdated: 'Kategoria zaktualizowana.', categoryDeleted: 'Kategoria usunięta.', categoryDeleteError: 'Nie można usunąć kategorii, ponieważ ma transakcje.', fillAllFields: 'Wypełnij wszystkie pola.', invalidCategory: 'Wybierz kategorię.', newMonthSheet: 'Nowy miesiąc utworzony.', confirmDelete: 'Czy na pewno chcesz usunąć?', chartBudgeted: 'Zabudżetowano', chartSpent: 'Wydano', catTypeIncome: 'Przychód', catTypeExpense: 'Wydatek', catTypeBill: 'Rachunek', catTypeDebt: 'Dług', catTypeSavings: 'Oszczędności', catGroupIncome: 'Przychody', catGroupExpense: 'Wydatki', catGroupBill: 'Rachunki', catGroupDebt: 'Długi', catGroupSavings: 'Oszczędności', monthNames: ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"], unknownUser: 'Nieznany', deletedCategory: 'Usunięta Kategoria', transactionSaveError: 'Błąd zapisu.', clickToEditBudget: 'Kliknij, aby edytować', deleteTransactionTooltip: 'Usuń transakcję', budgetFor: 'Nowy budżet dla', allUsers: 'Wszyscy Użytkownicy', langPlTooltip: 'Zmień na polski', langEnTooltip: 'Switch to English', currPlnTooltip: 'Zmień na PLN', currEurTooltip: 'Change to EUR', personalBudget: 'Budżet Osobisty', budgetName: 'Nazwa Budżetu', saveBtn: 'Zapisz', inviteUser: 'Zaproś Użytkownika', inviteUserDesc: 'Zaproś kogoś do współdzielenia budżetu.', inviteBtn: 'Zaproś', usersInBudget: 'Użytkownicy w tym budżecie', inviteSuccess: 'Użytkownik zaproszony!', inviteErrorUserNotFound: 'Użytkownik nieznaleziony.', inviteErrorAlreadyMember: 'Użytkownik już jest w budżecie.', inviteErrorGeneric: 'Błąd zapraszania.', budgetNameUpdated: 'Nazwa zaktualizowana.', dangerZone: 'Strefa Niebezpieczna', deleteBudgetDesc: 'Usunięcie budżetu jest trwałe. Stracisz wszystkie dane.', deleteBudgetBtn: 'Usuń ten Budżet', confirmDeleteBudget: 'Czy na pewno chcesz usunąć CAŁY budżet i wszystkie dane? Tego nie można cofnąć.', createNewBudget: 'Utwórz Nowy Budżet', newBudgetPlaceholder: 'np. Wakacje 2025', createBtn: 'Utwórz', budgetCreated: 'Budżet utworzony!', forgotPassword: 'Zapomniałeś hasła?', forgotPasswordSuccess: 'E-mail resetujący wysłany!' },
-                en: { welcome: "Welcome to Budget Online", login: "Log In", register: "Or Create New Account", email: "Email", password: "Password", name: "Your Name", loginBtn: "Log In", registerBtn: "Register", logout: "Logout", authErrorLogin: "Login failed.", authErrorRegister: "Registration failed.", exportCSV: "Export CSV", exportSummary: "Yearly Summary CSV", exportTransactions: "Transactions CSV", defaultBudget: "Default Budget", dashboardTitle: 'Monthly Budget Dashboard', leftToSpend: 'Amount Left to Spend', totalIncome: 'Total Income', totalExpenses: 'Total Expenses', spendingAnalysis: 'Spending Analysis', budgetVsSpent: 'Budget vs. Spent', budgetCategories: 'Budget Categories', addTransaction: 'Add Transaction', recentTransactions: 'Recent Transactions', manageBudget: 'Manage Budget', yearlySummary: 'Yearly Summary', manageCategories: 'Manage Categories', addTransactionBtn: 'Add Transaction', description: 'Description', descriptionPlaceholder: 'e.g., Groceries', amount: 'Amount', category: 'Category', selectCategory: 'Select a category...', date: 'Date', noTransactions: 'No transactions added yet.', spentOf: 'spent of', budgeted: 'Budgeted', manageCategoriesTitle: 'Manage Categories', manageBudgetTitle: 'Manage Budget', newCategoryPlaceholder: 'e.g., New Category', addCategoryBtn: 'Add Category', cancelEditBtn: 'Cancel Edit', saveChangesBtn: 'Save Changes', edit: 'Edit', delete: 'Delete', yearlySummaryTitle: 'Yearly Summary', month: 'Month', savings: 'Savings', total: 'TOTAL', transactionAdded: 'Transaction added!', transactionDeleted: 'Transaction deleted.', budgetUpdated: 'Budget updated.', invalidAmount: 'Invalid amount.', categoryAdded: 'Category added.', categoryUpdated: 'Category updated.', categoryDeleted: 'Category deleted.', categoryDeleteError: 'Cannot delete used category.', fillAllFields: 'Fill all fields.', invalidCategory: 'Select category.', newMonthSheet: 'New month created.', confirmDelete: 'Are you sure?', chartBudgeted: 'Budgeted', chartSpent: 'Spent', catTypeIncome: 'Income', catTypeExpense: 'Expense', catTypeBill: 'Bill', catTypeDebt: 'Debt', catTypeSavings: 'Savings', catGroupIncome: 'Income', catGroupExpense: 'Expenses', catGroupBill: 'Bills', catGroupDebt: 'Debt', catGroupSavings: 'Savings', monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], unknownUser: 'Unknown', deletedCategory: 'Deleted Category', transactionSaveError: 'Save error.', clickToEditBudget: 'Click to edit', deleteTransactionTooltip: 'Delete', budgetFor: 'New budget for', allUsers: 'All Users', langPlTooltip: 'Switch to Polish', langEnTooltip: 'Switch to English', currPlnTooltip: 'Switch to PLN', currEurTooltip: 'Switch to EUR', personalBudget: 'Personal Budget', budgetName: 'Budget Name', saveBtn: 'Save', inviteUser: 'Invite User', inviteUserDesc: 'Invite someone to share this budget.', inviteBtn: 'Invite', usersInBudget: 'Users in this budget', inviteSuccess: 'User invited!', inviteErrorUserNotFound: 'User not found.', inviteErrorAlreadyMember: 'User already member.', inviteErrorGeneric: 'Error inviting user.', budgetNameUpdated: 'Name updated.', dangerZone: 'Danger Zone', deleteBudgetDesc: 'Deleting a budget is permanent. All data will be lost.', deleteBudgetBtn: 'Delete this Budget', confirmDeleteBudget: 'Are you sure you want to delete the ENTIRE budget? This cannot be undone.', createNewBudget: 'Create New Budget', newBudgetPlaceholder: 'e.g., Vacation 2025', createBtn: 'Create', budgetCreated: 'Budget created!', forgotPassword: 'Forgot Password?', forgotPasswordSuccess: 'Reset email sent!' }
-            };
-
-            const i18n = (key, replacements = {}) => { let text = translations[currentLang][key] || key; for (const [placeholder, value] of Object.entries(replacements)) { text = text.replace(`{${placeholder}}`, value); } return text; };
-            const formatCurrency = (value) => { if (typeof value !== 'number') value = 0; const locale = currentLang === 'pl' ? 'pl-PL' : 'en-IE'; return new Intl.NumberFormat(locale, { style: 'currency', currency: currentCurrency }).format(value); };
-            const formatDate = (dateString) => { const locale = currentLang === 'pl' ? 'pl-PL' : 'en-GB'; return new Date(dateString).toLocaleDateString(locale); };
-            const showMessage = (key, type = 'success', replacements = {}) => { const mb = document.getElementById('message-box'); mb.textContent = i18n(key, replacements); mb.className = `p-4 text-sm rounded-lg ${type === 'success' ? 'bg-teal-100 text-teal-900' : 'bg-red-100 text-red-900'}`; mb.classList.remove('hidden'); setTimeout(() => mb.classList.add('hidden'), 3000); };
-            const showModal = (id) => { const el = document.getElementById(id); el.classList.remove('hidden'); setTimeout(() => { el.classList.remove('opacity-0'); el.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0'); }, 10); };
-            const hideModal = (id) => { const el = document.getElementById(id); el.classList.add('opacity-0'); el.querySelector('.modal-content').classList.add('scale-95', 'opacity-0'); setTimeout(() => el.classList.add('hidden'), 300); };
-
             const initAuthListener = () => {
                 unsubscribeAuth();
                 unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
@@ -684,8 +722,6 @@
                 budgetBarChart = new Chart(bCtx, { type: 'bar', data: { labels: bData.map(c => c.name), datasets: [{ label: i18n('chartBudgeted'), data: bData.map(c => c.budgeted), backgroundColor: '#374151', borderRadius: 4 }, { label: i18n('chartSpent'), data: bData.map(c => c.actual), backgroundColor: '#a855f7', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#374151' }, ticks: { color: '#9ca3af', font: { family: 'Inter' } } }, x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { family: 'Inter' } } } }, plugins: { legend: { position: 'top', labels: { color: '#d1d5db', font: { family: 'Inter' } } } } } });
             };
 
-            document.getElementById('logout-btn').onclick = () => auth.signOut();
-
             document.getElementById('create-budget-form').onsubmit = async (e) => { e.preventDefault(); const name = document.getElementById('new-budget-name').value; if(name) { await createPersonalBudget(currentUser.uid, currentUser.email.split('@')[0], name); showMessage('budgetCreated', 'success'); hideModal('budget-manager-modal'); } };
             document.getElementById('delete-budget-btn').onclick = async () => { if(confirm(i18n('confirmDeleteBudget'))) { await db.collection('budgets').doc(currentBudgetId).delete(); hideModal('budget-manager-modal'); } };
             document.getElementById('manage-budget-btn').onclick = () => { const b = userBudgets.find(bud => bud.id === currentBudgetId); if(b) document.getElementById('budget-form-name').value = b.name; renderBudgetManagerList(); const d = document.getElementById('demo-data-section'); d.classList.toggle('hidden', currentUser.email !== 'mwojciechowski808@gmail.com'); showModal('budget-manager-modal'); };
@@ -843,6 +879,8 @@
                 a.href = tUrl; a.download = `Transakcje_${year}.csv`; a.click();
             };
 
+            // Initialize
+            initAuthListener();
         });
     </script>
 </body>
