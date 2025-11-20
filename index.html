@@ -157,19 +157,19 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- KARTA 1: POZOSTAŁO (Zaktualizowana logika) -->
+                    <!-- KARTA 1: POZOSTAŁO (Przychody - Wydatki) -->
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
                         <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="leftToSpend">Pozostało do wydania</h2>
                         <p id="summary-left-to-spend" class="text-4xl font-bold text-white">0,00 zł</p>
                         <p class="text-sm text-gray-400 mt-2"><span id="summary-spent-so-far">0,00 zł</span> <span data-i18n-key="spentOf">wydano z</span> <span id="summary-total-income">0,00 zł</span></p>
                     </div>
-                    <!-- KARTA 2: PRZYCHODY (Bez zmian) -->
+                    <!-- KARTA 2: PRZYCHODY -->
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
                         <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="totalIncome">Całkowity Przychód</h2>
                         <p id="summary-income-actual" class="text-4xl font-bold text-brand-teal">0,00 zł</p>
                         <p class="text-sm text-gray-400 mt-2"><span data-i18n-key="budgeted">Zabudżetowano</span>: <span id="summary-income-budgeted">0,00 zł</span></p>
                     </div>
-                    <!-- KARTA 3: BUDŻET vs WYDATKI (Zaktualizowana) -->
+                    <!-- KARTA 3: PLAN vs WYDATKI -->
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
                         <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="budgetVsActual">Plan vs Wydatki</h2>
                         <p id="summary-expenses-actual" class="text-4xl font-bold text-brand-pink">0,00 zł</p>
@@ -355,7 +355,6 @@
         document.addEventListener('DOMContentLoaded', () => {
 
             // === 0. KONFIGURACJA FIREBASE ===
-            // !! WAŻNE !! - To jest Twój klucz, który mi podałeś wcześniej.
             const firebaseConfig = {
                 apiKey: "AIzaSyALc9fMeTrLKHGrImqYumKpq0QbuUkJ0Yc",
                 authDomain: "budgeting-app-25c25.firebaseapp.com",
@@ -368,91 +367,25 @@
             
             let app, auth, db;
             
-            // DEFINE GLOBALS FIRST to prevent ReferenceErrors
+            // GLOBAL DOM DEFINITIONS (Moved here to ensure availability)
             const authContainer = document.getElementById('auth-container');
             const appContainer = document.getElementById('app-container');
             const fab = document.getElementById('fab-add-transaction');
             const budgetSelect = document.getElementById('budget-select');
             const containerIds = ['income-table-container', 'expenses-table-container', 'bills-table-container', 'debt-table-container', 'savings-table-container'];
 
-            // === 1. STAN APLIKACJI ===
-            let currentLang = 'pl';
-            let currentCurrency = 'PLN';
-            let currentFilterUserId = null;
-            let currentMonthKey = '';
-            let currentUser = null;
-            let currentBudgetId = null;
-            let userBudgets = [];
-            let localUsers = {};
-            let localBudgetMembers = [];
-            let localTransactions = [];
-            let localCategories = [];
-            let localMonthlyBudgets = {};
-            
-            // Słownik Tłumaczeń
-            const translations = {
-                pl: {
-                    welcome: "Witaj w Budżecie Online", login: "Zaloguj się", register: "Lub utwórz nowe konto", email: "Email", password: "Hasło", name: "Twoje imię", loginBtn: "Zaloguj się", registerBtn: "Zarejestruj się", logout: "Wyloguj",
-                    authErrorLogin: "Logowanie nie powiodło się. Sprawdź email i hasło.", authErrorRegister: "Rejestracja nie powiodła się. Hasło min. 6 znaków.",
-                    exportCSV: "Eksportuj CSV", exportSummary: "Podsumowanie Roczne CSV", exportTransactions: "Transakcje (Roczne) CSV", defaultBudget: "Domyślny Budżet",
-                    dashboardTitle: 'Miesięczny Panel Budżetu', leftToSpend: 'Pozostało do wydania', totalIncome: 'Całkowity Przychód', totalExpenses: 'Całkowite Wydatki',
-                    spendingAnalysis: 'Analiza Wydatków', budgetVsSpent: 'Budżet vs. Wydatki', budgetCategories: 'Kategorie Budżetowe', addTransaction: 'Dodaj Transakcję',
-                    recentTransactions: 'Ostatnie Transakcje', manageBudget: 'Zarządzaj Budżetem', yearlySummary: 'Podsumowanie Roczne', manageCategories: 'Zarządzaj Kategoriami',
-                    addTransactionBtn: 'Dodaj Transakcję', description: 'Opis', descriptionPlaceholder: 'np. Zakupy spożywcze', amount: 'Kwota', category: 'Kategoria', selectCategory: 'Wybierz kategorię...',
-                    date: 'Data', noTransactions: 'Nie dodano jeszcze żadnych transakcji.', spentOf: 'wydano z', budgeted: 'Zabudżetowano', manageCategoriesTitle: 'Zarządzaj Kategoriami', manageBudgetTitle: 'Zarządzaj Budżetem',
-                    newCategoryPlaceholder: 'np. Nowa Kategoria', addCategoryBtn: 'Dodaj Kategorię', cancelEditBtn: 'Anuluj Edycję', saveChangesBtn: 'Zapisz Zmiany', edit: 'Edytuj', delete: 'Usuń',
-                    yearlySummaryTitle: 'Podsumowanie Roczne', month: 'Miesiąc', savings: 'Oszczędności', total: 'ŁĄCZNIE', transactionAdded: 'Transakcja dodana pomyślnie!', transactionDeleted: 'Transakcja usunięta.',
-                    budgetUpdated: 'Budżet zaktualizowany.', invalidAmount: 'Błędna kwota.', categoryAdded: 'Kategoria dodana.', categoryUpdated: 'Kategoria zaktualizowana.', categoryDeleted: 'Kategoria usunięta.',
-                    categoryDeleteError: 'Nie można usunąć kategorii, ponieważ ma transakcje.', fillAllFields: 'Wypełnij wszystkie pola.', invalidCategory: 'Wybierz kategorię.', newMonthSheet: 'Nowy miesiąc utworzony.',
-                    confirmDelete: 'Czy na pewno chcesz usunąć?', chartBudgeted: 'Zabudżetowano', chartSpent: 'Wydano', catTypeIncome: 'Przychód', catTypeExpense: 'Wydatek', catTypeBill: 'Rachunek', catTypeDebt: 'Dług', catTypeSavings: 'Oszczędności',
-                    catGroupIncome: 'Przychody', catGroupExpense: 'Wydatki', catGroupBill: 'Rachunki', catGroupDebt: 'Długi', catGroupSavings: 'Oszczędności',
-                    monthNames: ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"],
-                    unknownUser: 'Nieznany', deletedCategory: 'Usunięta Kategoria', transactionSaveError: 'Błąd zapisu.', clickToEditBudget: 'Kliknij, aby edytować', deleteTransactionTooltip: 'Usuń transakcję',
-                    budgetFor: 'Nowy budżet dla', allUsers: 'Wszyscy Użytkownicy', langPlTooltip: 'Zmień na polski', langEnTooltip: 'Switch to English', currPlnTooltip: 'Zmień na PLN', currEurTooltip: 'Change to EUR',
-                    personalBudget: 'Budżet Osobisty', budgetName: 'Nazwa Budżetu', saveBtn: 'Zapisz', inviteUser: 'Zaproś Użytkownika', inviteUserDesc: 'Zaproś kogoś do współdzielenia budżetu.', inviteBtn: 'Zaproś',
-                    usersInBudget: 'Użytkownicy w tym budżecie', inviteSuccess: 'Użytkownik zaproszony!', inviteErrorUserNotFound: 'Użytkownik nieznaleziony.', inviteErrorAlreadyMember: 'Użytkownik już jest w budżecie.', inviteErrorGeneric: 'Błąd zapraszania.', budgetNameUpdated: 'Nazwa zaktualizowana.',
-                    dangerZone: 'Strefa Niebezpieczna', deleteBudgetDesc: 'Usunięcie budżetu jest trwałe. Stracisz wszystkie dane.', deleteBudgetBtn: 'Usuń ten Budżet', confirmDeleteBudget: 'Czy na pewno chcesz usunąć CAŁY budżet i wszystkie dane? Tego nie można cofnąć.',
-                    createNewBudget: 'Utwórz Nowy Budżet', newBudgetPlaceholder: 'np. Wakacje 2025', createBtn: 'Utwórz', budgetCreated: 'Budżet utworzony!',
-                    forgotPassword: 'Zapomniałeś hasła?', forgotPasswordSuccess: 'E-mail resetujący wysłany!',
-                    budgetVsActual: 'Plan vs Wydatki'
-                },
-                en: {
-                    welcome: "Welcome to Budget Online", login: "Log In", register: "Or Create New Account", email: "Email", password: "Password", name: "Your Name", loginBtn: "Log In", registerBtn: "Register", logout: "Logout",
-                    authErrorLogin: "Login failed.", authErrorRegister: "Registration failed.", exportCSV: "Export CSV", exportSummary: "Yearly Summary CSV", exportTransactions: "Transactions CSV", defaultBudget: "Default Budget",
-                    dashboardTitle: 'Monthly Budget Dashboard', leftToSpend: 'Amount Left to Spend', totalIncome: 'Total Income', totalExpenses: 'Total Expenses', spendingAnalysis: 'Spending Analysis', budgetVsSpent: 'Budget vs. Spent',
-                    budgetCategories: 'Budget Categories', addTransaction: 'Add Transaction', recentTransactions: 'Recent Transactions', manageBudget: 'Manage Budget', yearlySummary: 'Yearly Summary', manageCategories: 'Manage Categories',
-                    addTransactionBtn: 'Add Transaction', description: 'Description', descriptionPlaceholder: 'e.g., Groceries', amount: 'Amount', category: 'Category', selectCategory: 'Select a category...',
-                    date: 'Date', noTransactions: 'No transactions added yet.', spentOf: 'spent of', budgeted: 'Budgeted', manageCategoriesTitle: 'Manage Categories', manageBudgetTitle: 'Manage Budget',
-                    newCategoryPlaceholder: 'e.g., New Category', addCategoryBtn: 'Add Category', cancelEditBtn: 'Cancel Edit', saveChangesBtn: 'Save Changes', edit: 'Edit', delete: 'Delete',
-                    yearlySummaryTitle: 'Yearly Summary', month: 'Month', savings: 'Savings', total: 'TOTAL', transactionAdded: 'Transaction added!', transactionDeleted: 'Transaction deleted.',
-                    budgetUpdated: 'Budget updated.', invalidAmount: 'Invalid amount.', categoryAdded: 'Category added.', categoryUpdated: 'Category updated.', categoryDeleted: 'Category deleted.',
-                    categoryDeleteError: 'Cannot delete used category.', fillAllFields: 'Fill all fields.', invalidCategory: 'Select category.', newMonthSheet: 'New month created.',
-                    confirmDelete: 'Are you sure?', chartBudgeted: 'Budgeted', chartSpent: 'Spent', catTypeIncome: 'Income', catTypeExpense: 'Expense', catTypeBill: 'Bill', catTypeDebt: 'Debt', catTypeSavings: 'Savings',
-                    catGroupIncome: 'Income', catGroupExpense: 'Expenses', catGroupBill: 'Bills', catGroupDebt: 'Debt', catGroupSavings: 'Savings',
-                    monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-                    unknownUser: 'Unknown', deletedCategory: 'Deleted Category', transactionSaveError: 'Save error.', clickToEditBudget: 'Click to edit', deleteTransactionTooltip: 'Delete',
-                    budgetFor: 'New budget for', allUsers: 'All Users', langPlTooltip: 'Switch to Polish', langEnTooltip: 'Switch to English', currPlnTooltip: 'Switch to PLN', currEurTooltip: 'Switch to EUR',
-                    personalBudget: 'Personal Budget', budgetName: 'Budget Name', saveBtn: 'Save', inviteUser: 'Invite User', inviteUserDesc: 'Invite someone to share this budget.', inviteBtn: 'Invite',
-                    usersInBudget: 'Users in this budget', inviteSuccess: 'User invited!', inviteErrorUserNotFound: 'User not found.', inviteErrorAlreadyMember: 'User already member.', inviteErrorGeneric: 'Error inviting user.', budgetNameUpdated: 'Name updated.',
-                    dangerZone: 'Danger Zone', deleteBudgetDesc: 'Deleting a budget is permanent. All data will be lost.', deleteBudgetBtn: 'Delete this Budget', confirmDeleteBudget: 'Are you sure you want to delete the ENTIRE budget? This cannot be undone.',
-                    createNewBudget: 'Create New Budget', newBudgetPlaceholder: 'e.g., Vacation 2025', createBtn: 'Create', budgetCreated: 'Budget created!',
-                    forgotPassword: 'Forgot Password?', forgotPasswordSuccess: 'Reset email sent!',
-                    budgetVsActual: 'Budget vs Actual'
-                }
-            };
-
-            const i18n = (key, replacements = {}) => { let text = translations[currentLang][key] || key; for (const [placeholder, value] of Object.entries(replacements)) { text = text.replace(`{${placeholder}}`, value); } return text; };
-            const formatCurrency = (value) => { if (typeof value !== 'number') value = 0; const locale = currentLang === 'pl' ? 'pl-PL' : 'en-IE'; return new Intl.NumberFormat(locale, { style: 'currency', currency: currentCurrency }).format(value); };
-            const formatDate = (dateString) => { const locale = currentLang === 'pl' ? 'pl-PL' : 'en-GB'; return new Date(dateString).toLocaleDateString(locale); };
-            const showMessage = (key, type = 'success', replacements = {}) => { const mb = document.getElementById('message-box'); mb.textContent = i18n(key, replacements); mb.className = `p-4 text-sm rounded-lg ${type === 'success' ? 'bg-teal-100 text-teal-900' : 'bg-red-100 text-red-900'}`; mb.classList.remove('hidden'); setTimeout(() => mb.classList.add('hidden'), 3000); };
-            const showModal = (id) => { const el = document.getElementById(id); el.classList.remove('hidden'); setTimeout(() => { el.classList.remove('opacity-0'); el.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0'); }, 10); };
-            const hideModal = (id) => { const el = document.getElementById(id); el.classList.add('opacity-0'); el.querySelector('.modal-content').classList.add('scale-95', 'opacity-0'); setTimeout(() => el.classList.add('hidden'), 300); };
-
-            // === AUTH HANDLER DEFINED EARLY ===
+            // Define Form Handlers Early
             const handleAuthSubmit = async (formId, isRegister) => {
                 const email = document.getElementById(isRegister ? 'register-email' : 'login-email').value;
                 const pass = document.getElementById(isRegister ? 'register-password' : 'login-password').value;
                 const errorBox = document.getElementById('auth-error');
+                
+                // Basic Validation
+                if (!email || !pass) {
+                    errorBox.textContent = i18n('fillAllFields');
+                    errorBox.classList.remove('hidden');
+                    return;
+                }
                 
                 try {
                     errorBox.classList.add('hidden');
@@ -467,16 +400,20 @@
                 } catch(err) {
                     console.error("Auth Error", err);
                     // Better Error Messages
-                    if (err.code === 'auth/email-already-in-use') errorBox.textContent = "Ten email jest już zajęty. Zaloguj się.";
-                    else if (err.code === 'auth/weak-password') errorBox.textContent = "Hasło jest za słabe (min. 6 znaków).";
-                    else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') errorBox.textContent = "Nieprawidłowy email lub hasło.";
-                    else errorBox.textContent = "Błąd: " + err.message;
-                    
+                    if (err.code === 'auth/email-already-in-use') {
+                        errorBox.textContent = "Ten email jest już zajęty.";
+                    } else if (err.code === 'auth/weak-password') {
+                        errorBox.textContent = "Hasło jest za słabe (min. 6 znaków).";
+                    } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+                        errorBox.textContent = "Błędny email lub hasło.";
+                    } else {
+                        errorBox.textContent = "Błąd: " + err.message;
+                    }
                     errorBox.classList.remove('hidden');
                 }
             };
 
-            // === ATTACH LISTENERS IMMEDIATELY ===
+            // Attach Listeners IMMEDIATELY to prevent form submission refresh
             document.getElementById('login-form').addEventListener('submit', (e) => { 
                 e.preventDefault(); 
                 if(auth) handleAuthSubmit('login-form', false); 
@@ -487,7 +424,7 @@
             });
             document.getElementById('logout-btn').addEventListener('click', () => auth && auth.signOut());
             document.getElementById('forgot-password-btn').addEventListener('click', async (e) => {
-                e.preventDefault();
+                e.preventDefault(); // Prevent default just in case
                 const email = document.getElementById('login-email').value;
                 if (!email) { alert('Wpisz swój email w pole powyżej.'); return; }
                 if(auth) {
@@ -496,7 +433,6 @@
                 }
             });
 
-            // === INITIALIZE FIREBASE ===
             try {
                 app = firebase.initializeApp(firebaseConfig);
                 auth = firebase.auth();
@@ -504,8 +440,22 @@
             } catch (e) {
                 console.error("Błąd inicjalizacji Firebase:", e);
                 alert("BŁĄD: Problem z połączeniem do bazy danych. Sprawdź konsolę.");
-                return;
+                return; // Stop execution if firebase fails
             }
+
+            // === 1. STAN APLIKACJI ===
+            let currentLang = 'pl';
+            let currentCurrency = 'PLN';
+            let currentFilterUserId = null;
+            let currentMonthKey = '';
+            let currentUser = null;
+            let currentBudgetId = null;
+            let userBudgets = [];
+            let localUsers = {};
+            let localBudgetMembers = [];
+            let localTransactions = [];
+            let localCategories = [];
+            let localMonthlyBudgets = {};
 
             // Nasłuchiwacze
             let unsubscribeAuth = () => {};
@@ -574,15 +524,67 @@
             document.getElementById('load-demo-data-btn').onclick = async () => {
                 if(currentUser.email !== 'mwojciechowski808@gmail.com') return alert("Brak uprawnień.");
                 if(confirm("Wgrać dane z Listopada 2025?")) {
+                    // FIND NATALIA'S ID
+                    const nataliaSnap = await db.collection('users').where('email', '==', 'pasierska.natalia@gmail').get();
+                    let nataliaId = null;
+                    if (!nataliaSnap.empty) nataliaId = nataliaSnap.docs[0].id;
+                    
+                    // Ensure Natalia is a member of this budget
+                    if (nataliaId && !localBudgetMembers.includes(nataliaId)) {
+                        await db.collection('budgets').doc(currentBudgetId).update({
+                            members: firebase.firestore.FieldValue.arrayUnion(nataliaId)
+                        });
+                    }
+
                     const transRef = db.collection('budgets').doc(currentBudgetId).collection('transactions');
                     const batch = db.batch();
-                    const demo = [ { date: '2025-11-01', description: 'Wypłata 1', amount: 2250 }, { date: '2025-11-01', description: 'Miesięczny czynsz', amount: 1800 }, { date: '2025-11-03', description: 'Media', amount: 185.50 }, { date: '2025-11-05', description: 'Zakupy spożywcze', amount: 142.30 }, { date: '2025-11-06', description: 'Kolacja na mieście', amount: 65.00 } ];
+                    
+                    // Use detected ID for Natalia, fallback to current user if she's not found
+                    const idNacia = nataliaId || currentUser.uid;
+                    const idMichal = currentUser.uid;
+
+                    const demo = [ 
+                        { date: '2025-11-01', description: 'Wypłata Mich', amount: 8600, userId: idMichal }, 
+                        { date: '2025-11-01', description: 'Wypłata Nacia', amount: 7000, userId: idNacia }, 
+                        { date: '2025-11-01', description: 'Czynsz', amount: 703, userId: idMichal }, 
+                        { date: '2025-11-03', description: 'Prąd', amount: 190, userId: idMichal }, 
+                        { date: '2025-11-05', description: 'Zakupy lidl', amount: 85, userId: idMichal }, 
+                        { date: '2025-11-06', description: 'Bilet Rufus', amount: 350, userId: idMichal },
+                        { date: '2025-11-07', description: 'Rata telefon', amount: 130, userId: idMichal },
+                        { date: '2025-11-07', description: 'Subskrypcje Youtube + Canal + HBO', amount: 85, userId: idMichal },
+                        { date: '2025-11-11', description: 'Paliwo', amount: 220, userId: idMichal },
+                        { date: '2025-11-12', description: 'Paznokcie', amount: 265, userId: idNacia }
+                    ];
+                    
                     demo.forEach(dt => {
-                         let target = ''; if(dt.description.includes('Wypłata')) target='Wypłata'; else if(dt.description.includes('czynsz')) target='Czynsz/Kredyt'; else if(dt.description.includes('Media')) target='Media'; else if(dt.description.includes('Zakupy')) target='Zakupy spożywcze'; else if(dt.description.includes('Kolacja')) target='Restauracje';
-                         const cat = localCategories.find(c => c.name === target);
-                         if(cat) batch.set(transRef.doc(), { date: dt.date, description: dt.description, amount: dt.amount, categoryId: cat.id, userId: currentUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                         let target = ''; 
+                         if(dt.description.includes('Wypłata')) target='Wypłata'; 
+                         else if(dt.description.includes('Czynsz')) target='Czynsz/Kredyt'; 
+                         else if(dt.description.includes('Prąd')) target='Media'; 
+                         else if(dt.description.includes('Subskrypcje')) target='Media'; 
+                         else if(dt.description.includes('Zakupy')) target='Zakupy spożywcze'; 
+                         else if(dt.description.includes('Bilet')) target='Rozrywka';
+                         else if(dt.description.includes('Paznokcie')) target='Wydatki'; // Fallback or create new category? Let's map to 'Wydatki' generic or 'Rozrywka'
+                         else if(dt.description.includes('Rata')) target='Telefon';
+                         else if(dt.description.includes('Paliwo')) target='Paliwo';
+                         
+                         // Special handling for 'Paznokcie' if no exact match
+                         let cat = localCategories.find(c => c.name === target);
+                         if (!cat && target === 'Wydatki') cat = localCategories.find(c => c.name === 'Zakupy'); // Close enough
+
+                         if(cat) {
+                             const newRef = transRef.doc();
+                             batch.set(newRef, { 
+                                 date: dt.date, 
+                                 description: dt.description, 
+                                 amount: dt.amount, 
+                                 categoryId: cat.id, 
+                                 userId: dt.userId, 
+                                 createdAt: firebase.firestore.FieldValue.serverTimestamp() 
+                             });
+                         }
                     });
-                    await batch.commit(); alert("Wgrano!");
+                    await batch.commit(); alert("Wgrano dane i dodano Natalię!");
                 }
             };
 
@@ -613,7 +615,8 @@
                 const totalExpensesBudgeted = sumByType('Expense', 'budgeted') + sumByType('Bill', 'budgeted') + sumByType('Debt', 'budgeted') + sumByType('Savings', 'budgeted');
                 const totalExpensesActual = sumByType('Expense', 'actual') + sumByType('Bill', 'actual') + sumByType('Debt', 'actual') + sumByType('Savings', 'actual');
                 
-                // NEW LOGIC: Left to Spend = (Real Income - Real Expenses)
+                // UPDATED LOGIC FOR CARDS (AS REQUESTED)
+                // Card 1: Left to Spend = Real Income - Real Expenses
                 const amountLeftToSpend = totalIncomeActual - totalExpensesActual; 
 
                 return { calculatedCategories, summaries: { totalIncomeActual, totalExpensesBudgeted, totalExpensesActual, amountLeftToSpend, totalIncomeBudgeted: sumByType('Income', 'budgeted') }, filteredTransactions };
@@ -622,12 +625,11 @@
             const renderSummaryCards = (s) => {
                 document.getElementById('summary-left-to-spend').textContent = formatCurrency(s.amountLeftToSpend);
                 document.getElementById('summary-spent-so-far').textContent = formatCurrency(s.totalExpensesActual);
-                
-                // Changed text "spent of X" to "spent of Y income"
-                document.getElementById('summary-total-income').textContent = formatCurrency(s.totalIncomeActual);
+                document.getElementById('summary-total-income').textContent = formatCurrency(s.totalIncomeActual); // Used to be budget, now Income
 
                 document.getElementById('summary-income-actual').textContent = formatCurrency(s.totalIncomeActual);
                 document.getElementById('summary-income-budgeted').textContent = formatCurrency(s.totalIncomeBudgeted);
+                
                 document.getElementById('summary-expenses-actual').textContent = formatCurrency(s.totalExpensesActual);
                 document.getElementById('summary-expenses-budgeted').textContent = formatCurrency(s.totalExpensesBudgeted);
             };
@@ -778,6 +780,7 @@
             document.getElementById('filter-user-select').onchange = (e) => { currentFilterUserId = e.target.value || null; updateAllUI(); };
             const handleDateChange = (e) => {
                 currentMonthKey = `${document.getElementById('month-select').value}-${document.getElementById('year-select').value}`;
+                // FIX: Call updateAllUI IMMEDIATELY to clear old month data from view
                 updateAllUI();
                 const ref = db.collection('budgets').doc(currentBudgetId).collection('monthlyBudgets').doc(currentMonthKey);
                 ref.get().then(d => { if(!d.exists) { const n={}; localCategories.forEach(c=>n[c.id]=c.budgeted||0); ref.set(n); } });
