@@ -1,130 +1,60 @@
 <!DOCTYPE html>
-<!-- Język ustawiany dynamicznie -->
 <html lang="pl" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Tytuł ustawiany dynamicznie -->
     <title>Miesięczny Panel Budżetu</title>
-    <!-- 1. Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 2. Load Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     
-    <!-- 3. Load Firebase SDKs -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
 
-    <!-- 4. Load Inter font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #1f2937; }
-        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
-        .progress-bar { background-color: #374151; }
-        .progress { height: 100%; border-radius: 0.25rem; transition: width 0.3s ease-in-out; }
-        .budget-value { cursor: pointer; text-decoration: underline; text-decoration-style: dotted; text-decoration-color: #9ca3af; }
-        .budget-value:hover { text-decoration-color: #f9fafb; color: #f9fafb; }
-        .delete-trans-btn { font-size: 1.5rem; font-weight: bold; line-height: 1; padding: 0.25rem 0.5rem; border-radius: 0.375rem; transition: background-color 0.2s; }
-        .delete-trans-btn:hover { background-color: #374151; }
-        .modal-overlay { transition: opacity 0.3s ease; }
-        .modal-content { transition: transform 0.3s ease; }
-        .settings-btn { background-color: #374151; border: 1px solid #4b5563; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer; font-size: 1rem; line-height: 1; transition: background-color 0.2s; }
-        .settings-btn:hover { background-color: #4b5563; }
-        .settings-btn.active { background-color: #14b8a6; border-color: #14b8a6; }
-
-        /* Floating Action Button (FAB) */
-        .fab {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 4rem; /* 64px */
-            height: 4rem; /* 64px */
-            border-radius: 9999px; /* rounded-full */
-            background-color: #14b8a6; /* brand-teal */
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            cursor: pointer;
-            transition: transform 0.2s ease-out;
-            z-index: 40;
-        }
-        .fab:hover {
-            transform: scale(1.05);
-            background-color: #0d9488; /* teal-700 */
-        }
-        .fab svg {
-            width: 2rem; /* 32px */
-            height: 2rem; /* 32px */
-        }
+        ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:#1f2937}::-webkit-scrollbar-thumb{background:#4b5563;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#6b7280}
+        .progress-bar{background-color:#374151}.progress{height:100%;border-radius:0.25rem;transition:width 0.3s ease-in-out}
+        .budget-value{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-decoration-color:#9ca3af}.budget-value:hover{text-decoration-color:#f9fafb;color:#f9fafb}
+        .delete-trans-btn{font-size:1.5rem;font-weight:bold;line-height:1;padding:0.25rem 0.5rem;border-radius:0.375rem;transition:background-color 0.2s}.delete-trans-btn:hover{background-color:#374151}
+        .modal-overlay{transition:opacity 0.3s ease}.modal-content{transition:transform 0.3s ease}
+        .settings-btn{background-color:#374151;border:1px solid #4b5563;color:white;padding:0.5rem;border-radius:0.5rem;cursor:pointer;font-size:1rem;line-height:1;transition:background-color 0.2s}.settings-btn:hover{background-color:#4b5563}.settings-btn.active{background-color:#14b8a6;border-color:#14b8a6}
+        .fab{position:fixed;bottom:2rem;right:2rem;width:4rem;height:4rem;border-radius:9999px;background-color:#14b8a6;color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);cursor:pointer;transition:transform 0.2s ease-out;z-index:40}.fab:hover{transform:scale(1.05);background-color:#0d9488}.fab svg{width:2rem;height:2rem}
     </style>
     
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: { 'brand-pink': '#ec4899', 'brand-purple': '#a855f7', 'brand-teal': '#14b8a6' }
-                },
-            },
-        }
+        tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { 'brand-pink': '#ec4899', 'brand-purple': '#a855f7', 'brand-teal': '#14b8a6' } } } }
     </script>
 </head>
 <body class="bg-gray-900 text-gray-200 font-sans p-4 sm:p-8 antialiased">
 
-    <!-- EKRAN LOGOWANIA -->
     <div id="auth-container" class="fixed inset-0 bg-gray-900 z-50 flex items-center justify-center p-4">
         <div class="w-full max-w-md">
             <div class="flex justify-center gap-4 mb-6">
-                 <div class="flex items-center space-x-1 bg-gray-800 p-1 rounded-lg">
-                    <button id="auth-lang-pl" class="settings-btn active">🇵🇱</button>
-                    <button id="auth-lang-en" class="settings-btn">🇬🇧</button>
-                </div>
-                 <div class="flex items-center space-x-1 bg-gray-800 p-1 rounded-lg">
-                    <button id="auth-curr-pln" class="settings-btn active">PLN</button>
-                    <button id="auth-curr-eur" class="settings-btn">EUR</button>
-                </div>
+                 <div class="flex items-center space-x-1 bg-gray-800 p-1 rounded-lg"><button id="auth-lang-pl" class="settings-btn active">🇵🇱</button><button id="auth-lang-en" class="settings-btn">🇬🇧</button></div>
+                 <div class="flex items-center space-x-1 bg-gray-800 p-1 rounded-lg"><button id="auth-curr-pln" class="settings-btn active">PLN</button><button id="auth-curr-eur" class="settings-btn">EUR</button></div>
             </div>
-            <h2 class="text-3xl font-bold text-white text-center mb-6" data-i18n-key="welcome">Witaj w Budżecie Online</h2>
+            <h2 class="text-3xl font-bold text-white text-center mb-6" data-i18n-key="welcome">Witaj</h2>
             <div class="bg-gray-800 p-8 rounded-2xl shadow-lg">
                 <form id="login-form" class="space-y-4 mb-4">
                     <h3 class="text-xl font-semibold text-white" data-i18n-key="login">Zaloguj się</h3>
-                    <div>
-                        <label for="login-email" class="block text-sm font-medium text-gray-300" data-i18n-key="email">Email</label>
-                        <input type="email" id="login-email" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
-                    </div>
-                    <div>
-                        <label for="login-password" class="block text-sm font-medium text-gray-300" data-i18n-key="password">Hasło</label>
-                        <input type="password" id="login-password" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
-                    </div>
+                    <div><label class="block text-sm font-medium text-gray-300" data-i18n-key="email">Email</label><input type="email" id="login-email" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"></div>
+                    <div><label class="block text-sm font-medium text-gray-300" data-i18n-key="password">Hasło</label><input type="password" id="login-password" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"></div>
                     <div class="flex flex-col gap-2">
-                        <button type="submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="loginBtn">Zaloguj się</button>
+                        <button type="submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="loginBtn">Zaloguj się</button>
                         <button type="button" id="forgot-password-btn" class="text-sm text-brand-teal hover:text-teal-400 mt-1" data-i18n-key="forgotPassword">Zapomniałeś hasła?</button>
                     </div>
                 </form>
                 <form id="register-form" class="space-y-4">
-                    <h3 class="text-xl font-semibold text-white" data-i18n-key="register">Lub utwórz nowe konto</h3>
-                    <div>
-                        <label for="register-name" class="block text-sm font-medium text-gray-300" data-i18n-key="name">Twoje imię</label>
-                        <input type="text" id="register-name" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" placeholder="np. Michał">
-                    </div>
-                    <div>
-                        <label for="register-email" class="block text-sm font-medium text-gray-300" data-i18n-key="email">Email</label>
-                        <input type="email" id="register-email" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
-                    </div>
-                    <div>
-                        <label for="register-password" class="block text-sm font-medium text-gray-300" data-i18n-key="password">Hasło</label>
-                        <input type="password" id="register-password" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
-                    </div>
-                    <button type="submit" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="registerBtn">Zarejestruj się</button>
+                    <h3 class="text-xl font-semibold text-white" data-i18n-key="register">Lub utwórz konto</h3>
+                    <div><label class="block text-sm font-medium text-gray-300" data-i18n-key="name">Imię</label><input type="text" id="register-name" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"></div>
+                    <div><label class="block text-sm font-medium text-gray-300" data-i18n-key="email">Email</label><input type="email" id="register-email" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"></div>
+                    <div><label class="block text-sm font-medium text-gray-300" data-i18n-key="password">Hasło</label><input type="password" id="register-password" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"></div>
+                    <button type="submit" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="registerBtn">Zarejestruj się</button>
                 </form>
                 <p id="auth-error" class="text-red-400 text-sm mt-4 text-center hidden"></p>
                 <p id="auth-success" class="text-teal-400 text-sm mt-4 text-center hidden"></p>
@@ -132,229 +62,116 @@
         </div>
     </div>
 
-    <!-- GŁÓWNA APLIKACJA -->
     <div id="app-container" class="max-w-7xl mx-auto hidden">
         <header class="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-2">
-                <select id="budget-select" class="bg-gray-900 text-white text-2xl sm:text-3xl font-bold border-0 focus:ring-0 p-0 pr-8 cursor-pointer hover:text-brand-teal transition-colors"></select>
-            </div>
+            <div class="flex items-center gap-2"><select id="budget-select" class="bg-gray-900 text-white text-2xl sm:text-3xl font-bold border-0 focus:ring-0 p-0 pr-8 cursor-pointer hover:text-brand-teal transition-colors"></select></div>
             <div class="flex flex-wrap justify-center sm:justify-end items-center gap-2">
-                <div class="flex items-center space-x-1 bg-gray-800 p-1 rounded-lg">
-                    <button id="lang-pl" class="settings-btn" title="Zmień język na polski" data-i18n-key="langPlTooltip">🇵🇱</button>
-                    <button id="lang-en" class="settings-btn" title="Switch language to English" data-i18n-key="langEnTooltip">🇬🇧</button>
-                </div>
-                 <div class="flex items-center space-x-1 bg-gray-800 p-1 rounded-lg">
-                    <button id="curr-pln" class="settings-btn" title="Zmień walutę na PLN" data-i18n-key="currPlnTooltip">PLN</button>
-                    <button id="curr-eur" class="settings-btn" title="Change currency to EUR" data-i18n-key="currEurTooltip">EUR</button>
-                </div>
-                <select id="filter-user-select" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-brand-teal focus:border-brand-teal p-2.5"></select>
-                <select id="month-select" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-brand-teal focus:border-brand-teal p-2.5"></select>
-                <select id="year-select" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-brand-teal focus:border-brand-teal p-2.5"></select>
-                <button id="logout-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2.5 px-4 rounded-lg shadow transition duration-200" data-i18n-key="logout">Wyloguj</button>
+                <div class="flex items-center space-x-1 bg-gray-800 p-1 rounded-lg"><button id="lang-pl" class="settings-btn active">🇵🇱</button><button id="lang-en" class="settings-btn">🇬🇧</button></div>
+                 <div class="flex items-center space-x-1 bg-gray-800 p-1 rounded-lg"><button id="curr-pln" class="settings-btn active">PLN</button><button id="curr-eur" class="settings-btn">EUR</button></div>
+                <select id="filter-user-select" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg p-2.5"></select>
+                <select id="month-select" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg p-2.5"></select>
+                <select id="year-select" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg p-2.5"></select>
+                <button id="logout-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2.5 px-4 rounded-lg shadow" data-i18n-key="logout">Wyloguj</button>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- KARTA 1: POZOSTAŁO (Przychody - Wydatki) -->
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
-                        <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="leftToSpend">Pozostało do wydania</h2>
+                        <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="leftToSpend">Pozostało</h2>
                         <p id="summary-left-to-spend" class="text-4xl font-bold text-white">0,00 zł</p>
                         <p class="text-sm text-gray-400 mt-2"><span id="summary-spent-so-far">0,00 zł</span> <span data-i18n-key="spentOf">wydano z</span> <span id="summary-total-income">0,00 zł</span></p>
                     </div>
-                    <!-- KARTA 2: PRZYCHODY -->
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
-                        <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="totalIncome">Całkowity Przychód</h2>
+                        <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="totalIncome">Przychody</h2>
                         <p id="summary-income-actual" class="text-4xl font-bold text-brand-teal">0,00 zł</p>
-                        <p class="text-sm text-gray-400 mt-2"><span data-i18n-key="budgeted">Zabudżetowano</span>: <span id="summary-income-budgeted">0,00 zł</span></p>
+                        <p class="text-sm text-gray-400 mt-2"><span data-i18n-key="budgeted">Plan</span>: <span id="summary-income-budgeted">0,00 zł</span></p>
                     </div>
-                    <!-- KARTA 3: PLAN vs WYDATKI -->
                     <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
                         <h2 class="text-sm font-medium text-gray-400 mb-1" data-i18n-key="budgetVsActual">Plan vs Wydatki</h2>
                         <p id="summary-expenses-actual" class="text-4xl font-bold text-brand-pink">0,00 zł</p>
-                        <p class="text-sm text-gray-400 mt-2"><span data-i18n-key="budgeted">Zabudżetowano</span>: <span id="summary-expenses-budgeted">0,00 zł</span></p>
+                        <p class="text-sm text-gray-400 mt-2"><span data-i18n-key="budgeted">Plan</span>: <span id="summary-expenses-budgeted">0,00 zł</span></p>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-gray-800 p-6 rounded-2xl shadow-lg h-[400px] flex flex-col">
-                        <h2 class="text-lg font-semibold text-white mb-4" data-i18n-key="spendingAnalysis">Analiza Wydatków</h2>
-                        <div class="relative flex-grow h-full"><canvas id="spendingDoughnutChart"></canvas></div>
-                    </div>
-                    <div class="bg-gray-800 p-6 rounded-2xl shadow-lg h-[400px] flex flex-col">
-                        <h2 class="text-lg font-semibold text-white mb-4" data-i18n-key="budgetVsSpent">Budżet vs. Wydatki (Wydatki)</h2>
-                        <div class="relative flex-grow h-full"><canvas id="budgetBarChart"></canvas></div>
-                    </div>
+                    <div class="bg-gray-800 p-6 rounded-2xl shadow-lg h-[400px] flex flex-col"><h2 class="text-lg font-semibold text-white mb-4" data-i18n-key="spendingAnalysis">Analiza</h2><div class="relative flex-grow h-full"><canvas id="spendingDoughnutChart"></canvas></div></div>
+                    <div class="bg-gray-800 p-6 rounded-2xl shadow-lg h-[400px] flex flex-col"><h2 class="text-lg font-semibold text-white mb-4" data-i18n-key="budgetVsSpent">Budżet vs. Wydatki</h2><div class="relative flex-grow h-full"><canvas id="budgetBarChart"></canvas></div></div>
                 </div>
                 <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-                        <h2 class="text-lg font-semibold text-white" data-i18n-key="budgetCategories">Kategorie Budżetowe</h2>
+                        <h2 class="text-lg font-semibold text-white" data-i18n-key="budgetCategories">Kategorie</h2>
                         <div class="flex flex-wrap gap-2 justify-center">
-                            <button id="manage-budget-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="manageBudget">Zarządzaj Budżetem</button>
-                            <button id="yearly-summary-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="yearlySummary">Podsumowanie Roczne</button>
-                            <button id="manage-categories-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="manageCategories">Zarządzaj Kategoriami</button>
+                            <button id="manage-budget-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow" data-i18n-key="manageBudget">Budżet</button>
+                            <button id="yearly-summary-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow" data-i18n-key="yearlySummary">Podsumowanie</button>
+                            <button id="manage-categories-btn" class="text-sm bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow" data-i18n-key="manageCategories">Kategorie</button>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 xl:grid-cols-2 gap-x-8 gap-y-6">
-                        <div id="income-table-container"></div>
-                        <div id="expenses-table-container"></div>
-                        <div id="bills-table-container"></div>
-                        <div id="debt-table-container"></div>
-                        <div id="savings-table-container"></div>
+                        <div id="income-table-container"></div><div id="expenses-table-container"></div><div id="bills-table-container"></div><div id="debt-table-container"></div><div id="savings-table-container"></div>
                     </div>
                 </div>
             </div>
             <div class="lg:col-span-1 space-y-6">
                 <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
                     <h2 class="text-lg font-semibold text-white mb-4" data-i18n-key="recentTransactions">Ostatnie Transakcje</h2>
-                    <div id="transaction-list-container" class="space-y-4 max-h-[1200px] lg:max-h-[1700px] overflow-y-auto pr-2">
-                        <p id="no-transactions" class="text-gray-400" data-i18n-key="noTransactions">Nie dodano jeszcze żadnych transakcji.</p>
-                    </div>
+                    <div id="transaction-list-container" class="space-y-4 max-h-[1200px] lg:max-h-[1700px] overflow-y-auto pr-2"><p id="no-transactions" class="text-gray-400" data-i18n-key="noTransactions">Brak transakcji.</p></div>
                 </div>
             </div>
         </div>
     </div>
-
-    <button id="fab-add-transaction" class="fab hidden" title="Dodaj Transakcję">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-    </button>
+    <button id="fab-add-transaction" class="fab hidden" title="Dodaj Transakcję"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg></button>
 
     <!-- MODALE -->
     <div id="transaction-modal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
         <div class="modal-content bg-gray-800 w-full max-w-lg rounded-2xl shadow-lg p-6 max-h-[90vh] flex flex-col transform scale-95 opacity-0">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-white" data-i18n-key="addTransaction">Dodaj Transakcję</h2>
-                <button id="close-transaction-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
-            </div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-white" data-i18n-key="addTransaction">Dodaj Transakcję</h2><button id="close-transaction-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button></div>
             <form id="transaction-form" class="space-y-4 overflow-y-auto pr-2">
                 <div id="message-box" class="p-4 text-sm rounded-lg hidden"></div>
-                <div>
-                    <label for="trans-description" class="block text-sm font-medium text-gray-300" data-i18n-key="description">Opis</label>
-                    <input type="text" id="trans-description" name="trans-description" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" data-i18n-key="descriptionPlaceholder" placeholder="np. Zakupy spożywcze">
-                </div>
-                <div>
-                    <label for="trans-amount" class="block text-sm font-medium text-gray-300" data-i18n-key="amount">Kwota</label>
-                    <input type="number" id="trans-amount" name="trans-amount" step="0.01" min="0" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" placeholder="0.00">
-                </div>
-                <div>
-                    <label for="trans-category" class="block text-sm font-medium text-gray-300" data-i18n-key="category">Kategoria</label>
-                    <select id="trans-category" name="trans-category" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal"></select>
-                </div>
-                <div>
-                    <label for="trans-date" class="block text-sm font-medium text-gray-300" data-i18n-key="date">Data</label>
-                    <input type="date" id="trans-date" name="trans-date" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal">
-                </div>
-                <button type="submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="addTransactionBtn">Dodaj Transakcję</button>
+                <div><label class="block text-sm font-medium text-gray-300" data-i18n-key="description">Opis</label><input type="text" id="trans-description" name="trans-description" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"></div>
+                <div><label class="block text-sm font-medium text-gray-300" data-i18n-key="amount">Kwota</label><input type="number" id="trans-amount" name="trans-amount" step="0.01" min="0" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"></div>
+                <div><label class="block text-sm font-medium text-gray-300" data-i18n-key="category">Kategoria</label><select id="trans-category" name="trans-category" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"></select></div>
+                <div><label class="block text-sm font-medium text-gray-300" data-i18n-key="date">Data</label><input type="date" id="trans-date" name="trans-date" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"></div>
+                <button type="submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="addTransactionBtn">Dodaj</button>
             </form>
         </div>
     </div>
-
     <div id="category-manager-modal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
         <div class="modal-content bg-gray-800 w-full max-w-lg rounded-2xl shadow-lg p-6 max-h-[90vh] flex flex-col transform scale-95 opacity-0">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-white" data-i18n-key="manageCategoriesTitle">Zarządzaj Kategoriami</h2>
-                <button id="close-category-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
-            </div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-white" data-i18n-key="manageCategoriesTitle">Kategorie</h2><button id="close-category-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button></div>
             <div class="mb-4"><button id="force-seed-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg shadow mb-4">Przywróć Domyślne Kategorie (Naprawa)</button></div>
             <form id="category-form" class="space-y-4 p-4 border border-gray-700 rounded-lg mb-4">
-                 <input type="hidden" id="cat-form-id">
-                <div>
-                    <label for="cat-form-name" class="block text-sm font-medium text-gray-300" data-i18n-key="name">Nazwa</label>
-                    <input type="text" id="cat-form-name" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" data-i18n-key="newCategoryPlaceholder" placeholder="np. Nowa Kategoria">
-                </div>
+                <div><label class="block text-sm font-medium text-gray-300" data-i18n-key="name">Nazwa</label><input type="text" id="cat-form-name" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"></div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="cat-form-budgeted" class="block text-sm font-medium text-gray-300" data-i18n-key="defaultBudget">Domyślny Budżet</label>
-                        <input type="number" id="cat-form-budgeted" step="0.01" min="0" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" placeholder="0.00">
-                    </div>
-                    <div>
-                        <label for="cat-form-type" class="block text-sm font-medium text-gray-300" data-i18n-key="type">Typ</label>
-                        <select id="cat-form-type" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal"></select>
-                    </div>
+                    <div><label class="block text-sm font-medium text-gray-300" data-i18n-key="defaultBudget">Budżet</label><input type="number" id="cat-form-budgeted" step="0.01" min="0" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"></div>
+                    <div><label class="block text-sm font-medium text-gray-300" data-i18n-key="type">Typ</label><select id="cat-form-type" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"></select></div>
                 </div>
-                <button type="submit" id="cat-form-submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="addCategoryBtn">Dodaj Kategorię</button>
-                <button type="button" id="cat-form-cancel" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200 hidden" data-i18n-key="cancelEditBtn">Anuluj Edycję</button>
+                <button type="submit" id="cat-form-submit" class="w-full bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="addCategoryBtn">Dodaj</button>
+                <button type="button" id="cat-form-cancel" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow hidden" data-i18n-key="cancelEditBtn">Anuluj</button>
             </form>
             <div id="category-manager-list" class="space-y-2 overflow-y-auto pr-2"></div>
         </div>
     </div>
-
     <div id="yearly-summary-modal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
         <div class="modal-content bg-gray-800 w-full max-w-3xl rounded-2xl shadow-lg p-6 max-h-[90vh] flex flex-col transform scale-95 opacity-0">
-            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-                <h2 class="text-xl font-semibold text-white" id="yearly-summary-title" data-i18n-key="yearlySummaryTitle">Podsumowanie Roczne</h2>
-                <button id="export-csv-btn" class="text-sm bg-brand-teal hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="exportCSV">Eksportuj CSV</button>
-                <button id="close-yearly-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
-            </div>
-            <div class="overflow-y-auto pr-2">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-700">
-                        <tr>
-                            <th class="p-3 text-sm font-semibold text-white" data-i18n-key="month">Miesiąc</th>
-                            <th class="p-3 text-sm font-semibold text-white" data-i18n-key="totalIncome">Przychody</th>
-                            <th class="p-3 text-sm font-semibold text-white" data-i18n-key="totalExpenses">Wydatki</th>
-                            <th class="p-3 text-sm font-semibold text-white" data-i18n-key="savings">Oszczędności</th>
-                        </tr>
-                    </thead>
-                    <tbody id="yearly-summary-table-body" class="divide-y divide-gray-700"></tbody>
-                    <tfoot class="bg-gray-700 font-bold"><tr id="yearly-summary-table-footer"></tr></tfoot>
-                </table>
-            </div>
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4"><h2 class="text-xl font-semibold text-white" id="yearly-summary-title">Podsumowanie</h2><button id="export-csv-btn" class="text-sm bg-brand-teal hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-lg shadow" data-i18n-key="exportCSV">CSV</button><button id="close-yearly-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button></div>
+            <div class="overflow-y-auto pr-2"><table class="w-full text-left"><thead class="bg-gray-700"><tr><th class="p-3 text-sm font-semibold text-white" data-i18n-key="month">Miesiąc</th><th class="p-3 text-sm font-semibold text-white" data-i18n-key="totalIncome">Przychody</th><th class="p-3 text-sm font-semibold text-white" data-i18n-key="totalExpenses">Wydatki</th><th class="p-3 text-sm font-semibold text-white" data-i18n-key="savings">Oszczędności</th></tr></thead><tbody id="yearly-summary-table-body" class="divide-y divide-gray-700"></tbody><tfoot class="bg-gray-700 font-bold"><tr id="yearly-summary-table-footer"></tr></tfoot></table></div>
         </div>
     </div>
-    
     <div id="budget-manager-modal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
         <div class="modal-content bg-gray-800 w-full max-w-lg rounded-2xl shadow-lg p-6 max-h-[90vh] flex flex-col transform scale-95 opacity-0">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-white" data-i18n-key="manageBudgetTitle">Zarządzaj Budżetem</h2>
-                <button id="close-budget-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
-            </div>
-            <form id="budget-name-form" class="space-y-2 mb-4">
-                <label for="budget-form-name" class="block text-sm font-medium text-gray-300" data-i18n-key="budgetName">Nazwa Budżetu</label>
-                <div class="flex gap-2">
-                    <input type="text" id="budget-form-name" required class="flex-grow block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" placeholder="np. Budżet Domowy">
-                    <button type="submit" class="bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="saveBtn">Zapisz</button>
-                </div>
-            </form>
-            <hr class="border-gray-700 my-4">
-            <h3 class="text-lg font-semibold text-white mb-2" data-i18n-key="createNewBudget">Utwórz Nowy Budżet</h3>
-            <form id="create-budget-form" class="space-y-2 mb-4">
-                <div class="flex gap-2">
-                     <input type="text" id="new-budget-name" required class="flex-grow block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" data-i18n-key="newBudgetPlaceholder" placeholder="np. Wakacje 2025">
-                     <button type="submit" class="bg-brand-purple hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="createBtn">Utwórz</button>
-                </div>
-            </form>
-            <hr class="border-gray-700 my-4">
-            <h3 class="text-lg font-semibold text-white mb-2" data-i18n-key="inviteUser">Zaproś Użytkownika</h3>
-            <p class="text-sm text-gray-400 mb-2" data-i18n-key="inviteUserDesc">Zaproś kogoś do współdzielenia tego budżetu. Osoba ta musi już posiadać konto w aplikacji.</p>
-            <form id="invite-user-form" class="space-y-2 mb-4">
-                <label for="invite-email" class="block text-sm font-medium text-gray-300" data-i18n-key="email">Email użytkownika</label>
-                <div class="flex gap-2">
-                    <input type="email" id="invite-email" required class="flex-grow block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-brand-teal focus:border-brand-teal" placeholder="uzytkownik@przyklad.com">
-                    <button type="submit" class="bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="inviteBtn">Zaproś</button>
-                </div>
-                <p id="invite-message" class="text-sm mt-2 hidden"></p>
-            </form>
-            <div id="demo-data-section" class="hidden">
-                <hr class="border-gray-700 my-4">
-                <div class="flex justify-center"><button id="load-demo-data-btn" class="text-sm bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow">Wgraj Dane z Listopada 2025</button></div>
-            </div>
-            <hr class="border-gray-700 my-4">
-            <h3 class="text-lg font-semibold text-white mb-2" data-i18n-key="usersInBudget">Użytkownicy w tym budżecie</h3>
-            <div id="budget-user-list" class="space-y-2 overflow-y-auto pr-2 max-h-32"></div>
-            <hr class="border-gray-700 my-4">
-            <div class="bg-red-900/20 p-4 rounded-lg border border-red-900">
-                <h3 class="text-lg font-semibold text-red-500 mb-2" data-i18n-key="dangerZone">Strefa Niebezpieczna</h3>
-                <p class="text-sm text-gray-400 mb-4" data-i18n-key="deleteBudgetDesc">Usunięcie budżetu jest nieodwracalne. Wszystkie transakcje zostaną utracone.</p>
-                <button id="delete-budget-btn" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200" data-i18n-key="deleteBudgetBtn">Usuń ten Budżet</button>
-            </div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-white" data-i18n-key="manageBudgetTitle">Budżet</h2><button id="close-budget-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button></div>
+            <form id="budget-name-form" class="space-y-2 mb-4"><label class="block text-sm font-medium text-gray-300" data-i18n-key="budgetName">Nazwa</label><div class="flex gap-2"><input type="text" id="budget-form-name" required class="flex-grow block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"><button type="submit" class="bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="saveBtn">Zapisz</button></div></form>
+            <hr class="border-gray-700 my-4"><h3 class="text-lg font-semibold text-white mb-2" data-i18n-key="createNewBudget">Nowy Budżet</h3><form id="create-budget-form" class="space-y-2 mb-4"><div class="flex gap-2"><input type="text" id="new-budget-name" required class="flex-grow block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white" data-i18n-key="newBudgetPlaceholder" placeholder="np. Wakacje"><button type="submit" class="bg-brand-purple hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="createBtn">Utwórz</button></div></form>
+            <hr class="border-gray-700 my-4"><h3 class="text-lg font-semibold text-white mb-2" data-i18n-key="inviteUser">Zaproś</h3><p class="text-sm text-gray-400 mb-2" data-i18n-key="inviteUserDesc">Podaj email osoby zarejestrowanej.</p><form id="invite-user-form" class="space-y-2 mb-4"><label class="block text-sm font-medium text-gray-300" data-i18n-key="email">Email</label><div class="flex gap-2"><input type="email" id="invite-email" required class="flex-grow block w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"><button type="submit" class="bg-brand-teal hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="inviteBtn">Zaproś</button></div><p id="invite-message" class="text-sm mt-2 hidden"></p></form>
+            <div id="demo-data-section" class="hidden"><hr class="border-gray-700 my-4"><div class="flex justify-center"><button id="load-demo-data-btn" class="text-sm bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow">Wgraj Dane z Listopada 2025</button></div></div>
+            <hr class="border-gray-700 my-4"><h3 class="text-lg font-semibold text-white mb-2" data-i18n-key="usersInBudget">Użytkownicy</h3><div id="budget-user-list" class="space-y-2 overflow-y-auto pr-2 max-h-32"></div>
+            <hr class="border-gray-700 my-4"><div class="bg-red-900/20 p-4 rounded-lg border border-red-900"><h3 class="text-lg font-semibold text-red-500 mb-2" data-i18n-key="dangerZone">Strefa Niebezpieczna</h3><p class="text-sm text-gray-400 mb-4" data-i18n-key="deleteBudgetDesc">Usunięcie jest nieodwracalne.</p><button id="delete-budget-btn" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n-key="deleteBudgetBtn">Usuń Budżet</button></div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-
-            // === 0. KONFIGURACJA FIREBASE ===
+        document.addEventListener('DOMContentLoaded', function() {
             const firebaseConfig = {
                 apiKey: "AIzaSyALc9fMeTrLKHGrImqYumKpq0QbuUkJ0Yc",
                 authDomain: "budgeting-app-25c25.firebaseapp.com",
@@ -364,391 +181,267 @@
                 appId: "1:513641657698:web:eafab8afdb3db3fec0683b",
                 measurementId: "G-D6JH4LEH3R"
             };
-            
-            let app, auth, db;
-            
-            // GLOBAL DOM DEFINITIONS (Moved here to ensure availability)
-            const authContainer = document.getElementById('auth-container');
-            const appContainer = document.getElementById('app-container');
-            const fab = document.getElementById('fab-add-transaction');
-            const budgetSelect = document.getElementById('budget-select');
+
+            // Deklaracje zmiennych NA SAMYM GÓRZE
             const containerIds = ['income-table-container', 'expenses-table-container', 'bills-table-container', 'debt-table-container', 'savings-table-container'];
-
-            // Define Form Handlers Early
-            const handleAuthSubmit = async (formId, isRegister) => {
-                const email = document.getElementById(isRegister ? 'register-email' : 'login-email').value;
-                const pass = document.getElementById(isRegister ? 'register-password' : 'login-password').value;
-                const errorBox = document.getElementById('auth-error');
-                
-                // Basic Validation
-                if (!email || !pass) {
-                    errorBox.textContent = i18n('fillAllFields');
-                    errorBox.classList.remove('hidden');
-                    return;
-                }
-                
-                try {
-                    errorBox.classList.add('hidden');
-                    if(isRegister) {
-                        const name = document.getElementById('register-name').value;
-                        if(!name) throw new Error("Name required");
-                        const cred = await auth.createUserWithEmailAndPassword(email, pass);
-                        await db.collection('users').doc(cred.user.uid).set({ name, email });
-                    } else {
-                        await auth.signInWithEmailAndPassword(email, pass);
-                    }
-                } catch(err) {
-                    console.error("Auth Error", err);
-                    // Better Error Messages
-                    if (err.code === 'auth/email-already-in-use') {
-                        errorBox.textContent = "Ten email jest już zajęty.";
-                    } else if (err.code === 'auth/weak-password') {
-                        errorBox.textContent = "Hasło jest za słabe (min. 6 znaków).";
-                    } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-                        errorBox.textContent = "Błędny email lub hasło.";
-                    } else {
-                        errorBox.textContent = "Błąd: " + err.message;
-                    }
-                    errorBox.classList.remove('hidden');
-                }
-            };
-
-            // Attach Listeners IMMEDIATELY to prevent form submission refresh
-            document.getElementById('login-form').addEventListener('submit', (e) => { 
-                e.preventDefault(); 
-                if(auth) handleAuthSubmit('login-form', false); 
-            });
-            document.getElementById('register-form').addEventListener('submit', (e) => { 
-                e.preventDefault(); 
-                if(auth) handleAuthSubmit('register-form', true); 
-            });
-            document.getElementById('logout-btn').addEventListener('click', () => auth && auth.signOut());
-            document.getElementById('forgot-password-btn').addEventListener('click', async (e) => {
-                e.preventDefault(); // Prevent default just in case
-                const email = document.getElementById('login-email').value;
-                if (!email) { alert('Wpisz swój email w pole powyżej.'); return; }
-                if(auth) {
-                    try { await auth.sendPasswordResetEmail(email); document.getElementById('auth-success').textContent = i18n('forgotPasswordSuccess'); document.getElementById('auth-success').classList.remove('hidden'); } 
-                    catch(error) { alert('Błąd: ' + error.message); }
-                }
-            });
-
-            try {
-                app = firebase.initializeApp(firebaseConfig);
-                auth = firebase.auth();
-                db = firebase.firestore();
-            } catch (e) {
-                console.error("Błąd inicjalizacji Firebase:", e);
-                alert("BŁĄD: Problem z połączeniem do bazy danych. Sprawdź konsolę.");
-                return; // Stop execution if firebase fails
-            }
-
-            // === 1. STAN APLIKACJI ===
-            let currentLang = 'pl';
-            let currentCurrency = 'PLN';
-            let currentFilterUserId = null;
-            let currentMonthKey = '';
-            let currentUser = null;
-            let currentBudgetId = null;
-            let userBudgets = [];
-            let localUsers = {};
-            let localBudgetMembers = [];
-            let localTransactions = [];
-            let localCategories = [];
-            let localMonthlyBudgets = {};
-
-            // Nasłuchiwacze
-            let unsubscribeAuth = () => {};
-            let unsubscribeBudgetsList = () => {};
-            let unsubscribeActiveBudget = () => {};
-
-            // Wykresy
+            let app, auth, db;
+            let currentLang = 'pl', currentCurrency = 'PLN', currentFilterUserId = null, currentMonthKey = '', currentUser = null, currentBudgetId = null;
+            let userBudgets = [], localUsers = {}, localBudgetMembers = [], localTransactions = [], localCategories = [], localMonthlyBudgets = {};
             let spendingDoughnutChart, budgetBarChart;
-            
-            const pieColors = ['#14b8a6', '#ec4899', '#a855f7', '#f59e0b', '#3b82f6', '#ef4444', '#6b7280', '#10b981', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#f97316', '#84cc16', '#06b6d4', '#0ea5e9', '#22d3ee', '#c084fc', '#fb7185', '#fda4af'];
+            let editingCatId = null;
+            let unsubscribeAuth, unsubscribeBudgetsList, unsubscribeActiveBudget;
 
-            const defaultCategoriesPL = [{ name: 'Wypłata', type: 'Income', budgeted: 4500 }, { name: 'Freelance', type: 'Income', budgeted: 300 }, { name: 'Zakupy spożywcze', type: 'Expense', budgeted: 600 }, { name: 'Restauracje', type: 'Expense', budgeted: 250 }, { name: 'Paliwo', type: 'Expense', budgeted: 150 }, { name: 'Rozrywka', type: 'Expense', budgeted: 200 }, { name: 'Zakupy', type: 'Expense', budgeted: 150 }, { name: 'Czynsz/Kredyt', type: 'Bill', budgeted: 1800 }, { name: 'Media', type: 'Bill', budgeted: 200 }, { name: 'Internet', type: 'Bill', budgeted: 60 }, { name: 'Telefon', type: 'Bill', budgeted: 80 }, { name: 'Ubezp. samochodu', type: 'Bill', budgeted: 120 }, { name: 'Kredyt studencki', type: 'Debt', budgeted: 150 }, { name: 'Karta kredytowa', type: 'Debt', budgeted: 100 }, { name: 'Fundusz awaryjny', type: 'Savings', budgeted: 300 }, { name: 'Fundusz wakacyjny', type: 'Savings', budgeted: 100 }];
-            const defaultCategoriesEN = [{ name: 'Paycheck', type: 'Income', budgeted: 4500 }, { name: 'Freelance', type: 'Income', budgeted: 300 }, { name: 'Groceries', type: 'Expense', budgeted: 600 }, { name: 'Restaurants', type: 'Expense', budgeted: 250 }, { name: 'Gas/Fuel', type: 'Expense', budgeted: 150 }, { name: 'Entertainment', type: 'Expense', budgeted: 200 }, { name: 'Shopping', type: 'Expense', budgeted: 150 }, { name: 'Rent/Mortgage', type: 'Bill', budgeted: 1800 }, { name: 'Utilities', type: 'Bill', budgeted: 200 }, { name: 'Internet', type: 'Bill', budgeted: 60 }, { name: 'Phone', type: 'Bill', budgeted: 80 }, { name: 'Car Insurance', type: 'Bill', budgeted: 120 }, { name: 'Student Loan', type: 'Debt', budgeted: 150 }, { name: 'Credit Card', type: 'Debt', budgeted: 100 }, { name: 'Emergency Fund', type: 'Savings', budgeted: 300 }, { name: 'Vacation Fund', type: 'Savings', budgeted: 100 }];
+            try { app = firebase.initializeApp(firebaseConfig); auth = firebase.auth(); db = firebase.firestore(); } catch (e) { console.error(e); }
+
+            // --- FUNKCJE POMOCNICZE ---
+            const translations={pl:{welcome:"Witaj w Budżecie Online",login:"Zaloguj się",register:"Lub utwórz nowe konto",email:"Email",password:"Hasło",name:"Imię",loginBtn:"Zaloguj się",registerBtn:"Zarejestruj się",logout:"Wyloguj",authErrorLogin:"Błąd logowania",authErrorRegister:"Błąd rej.",exportCSV:"Eksport CSV",defaultBudget:"Mój Budżet",dashboardTitle:'Budżet Domowy',leftToSpend:'Pozostało do wydania',totalIncome:'Całkowity Przychód',totalExpenses:'Całkowite Wydatki',spendingAnalysis:'Analiza Wydatków',budgetVsSpent:'Budżet vs. Wydatki',budgetCategories:'Kategorie Budżetowe',addTransaction:'Dodaj Transakcję',recentTransactions:'Ostatnie Transakcje',manageBudget:'Zarządzaj Budżetem',yearlySummary:'Podsumowanie Roczne',manageCategories:'Zarządzaj Kategoriami',addTransactionBtn:'Dodaj Transakcję',description:'Opis',descriptionPlaceholder:'np. Zakupy',amount:'Kwota',category:'Kategoria',selectCategory:'Wybierz...',date:'Data',noTransactions:'Brak transakcji.',spentOf:'wydano z',budgeted:'Zabudżetowano',manageCategoriesTitle:'Kategorie',manageBudgetTitle:'Budżet',newCategoryPlaceholder:'np. Nowa',addCategoryBtn:'Dodaj',cancelEditBtn:'Anuluj',saveChangesBtn:'Zapisz',edit:'Edytuj',delete:'Usuń',yearlySummaryTitle:'Podsumowanie',month:'Miesiąc',savings:'Oszczędności',total:'ŁĄCZNIE',transactionAdded:'Dodano!',transactionDeleted:'Usunięto.',budgetUpdated:'Zaktualizowano.',invalidAmount:'Błędna kwota.',categoryAdded:'Dodano.',categoryUpdated:'Zaktualizowano.',categoryDeleted:'Usunięto.',categoryDeleteError:'Ma transakcje.',fillAllFields:'Wypełnij pola.',invalidCategory:'Wybierz kat.',newMonthSheet:'Nowy miesiąc.',confirmDelete:'Na pewno?',chartBudgeted:'Zabudżetowano',chartSpent:'Wydano',catTypeIncome:'Przychód',catTypeExpense:'Wydatek',catTypeBill:'Rachunek',catTypeDebt:'Dług',catTypeSavings:'Oszczędności',catGroupIncome:'Przychody',catGroupExpense:'Wydatki',catGroupBill:'Rachunki',catGroupDebt:'Długi',catGroupSavings:'Oszczędności',monthNames:["Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"],unknownUser:'Nieznany',deletedCategory:'Usunięta',transactionSaveError:'Błąd zapisu.',clickToEditBudget:'Kliknij by edytować',deleteTransactionTooltip:'Usuń',budgetFor:'Budżet dla',allUsers:'Wszyscy Użytkownicy',langPlTooltip:'PL',langEnTooltip:'EN',currPlnTooltip:'PLN',currEurTooltip:'EUR',personalBudget:'Osobisty',budgetName:'Nazwa',saveBtn:'Zapisz',inviteUser:'Zaproś',inviteUserDesc:'Podaj email.',inviteBtn:'Zaproś',usersInBudget:'Użytkownicy',inviteSuccess:'Zaproszono!',inviteErrorUserNotFound:'Brak.',inviteErrorAlreadyMember:'Już jest.',inviteErrorGeneric:'Błąd.',budgetNameUpdated:'Zmieniono.',dangerZone:'Strefa Niebezpieczna',deleteBudgetDesc:'Trwałe usunięcie.',deleteBudgetBtn:'Usuń Budżet',confirmDeleteBudget:'Usunąć CAŁY budżet?',createNewBudget:'Nowy Budżet',newBudgetPlaceholder:'np. Wakacje',createBtn:'Utwórz',budgetCreated:'Utworzono!',forgotPassword:'Zapomniałeś hasła?',forgotPasswordSuccess:'Wysłano!',budgetVsActual:'Plan vs Wydatki'},en:{welcome:"Welcome",login:"Log In",register:"Register",email:"Email",password:"Password",name:"Name",loginBtn:"Log In",registerBtn:"Register",logout:"Logout",authErrorLogin:"Error",authErrorRegister:"Error",exportCSV:"Export",defaultBudget:"My Budget",dashboardTitle:'Budget Dashboard',leftToSpend:'Left to Spend',totalIncome:'Total Income',totalExpenses:'Total Expenses',spendingAnalysis:'Analysis',budgetVsSpent:'Budget vs Spent',budgetCategories:'Categories',addTransaction:'Add Trans',recentTransactions:'Recent',manageBudget:'Manage Budget',yearlySummary:'Summary',manageCategories:'Manage Cats',addTransactionBtn:'Add',description:'Desc',descriptionPlaceholder:'e.g. Food',amount:'Amount',category:'Category',selectCategory:'Select...',date:'Date',noTransactions:'No trans.',spentOf:'spent of',budgeted:'Budgeted',manageCategoriesTitle:'Cats',manageBudgetTitle:'Budget',newCategoryPlaceholder:'New',addCategoryBtn:'Add',cancelEditBtn:'Cancel',saveChangesBtn:'Save',edit:'Edit',delete:'Del',yearlySummaryTitle:'Summary',month:'Month',savings:'Savings',total:'TOTAL',transactionAdded:'Added!',transactionDeleted:'Deleted.',budgetUpdated:'Updated.',invalidAmount:'Invalid.',categoryAdded:'Added.',categoryUpdated:'Updated.',categoryDeleted:'Deleted.',categoryDeleteError:'Has trans.',fillAllFields:'Fill all.',invalidCategory:'Select cat.',newMonthSheet:'New month.',confirmDelete:'Sure?',chartBudgeted:'Budget',chartSpent:'Spent',catTypeIncome:'Income',catTypeExpense:'Expense',catTypeBill:'Bill',catTypeDebt:'Debt',catTypeSavings:'Savings',catGroupIncome:'Income',catGroupExpense:'Expenses',catGroupBill:'Bills',catGroupDebt:'Debt',catGroupSavings:'Savings',monthNames:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],unknownUser:'?',deletedCategory:'Deleted',transactionSaveError:'Error.',clickToEditBudget:'Edit',deleteTransactionTooltip:'Del',budgetFor:'Budget for',allUsers:'All Users',langPlTooltip:'PL',langEnTooltip:'EN',currPlnTooltip:'PLN',currEurTooltip:'EUR',personalBudget:'Personal',budgetName:'Name',saveBtn:'Save',inviteUser:'Invite',inviteUserDesc:'Email',inviteBtn:'Invite',usersInBudget:'Users',inviteSuccess:'Invited!',inviteErrorUserNotFound:'Not found.',inviteErrorAlreadyMember:'Member.',inviteErrorGeneric:'Error.',budgetNameUpdated:'Updated.',dangerZone:'Danger',deleteBudgetDesc:'Permanent.',deleteBudgetBtn:'Delete',confirmDeleteBudget:'Delete ALL?',createNewBudget:'New Budget',newBudgetPlaceholder:'e.g. Holiday',createBtn:'Create',budgetCreated:'Created!',forgotPassword:'Forgot?',forgotPasswordSuccess:'Sent!',budgetVsActual:'Budget vs Actual'}};
             
-            const initAuthListener = () => {
-                unsubscribeAuth();
+            function i18n(k, r={}) { let t=translations[currentLang][k]||k; for(const[p,v]of Object.entries(r))t=t.replace(`{${p}}`,v); return t; }
+            function formatCurrency(v) { const l=currentLang==='pl'?'pl-PL':'en-IE'; return new Intl.NumberFormat(l, { style:'currency', currency:currentCurrency }).format(v||0); }
+            function formatDate(d) { const l=currentLang==='pl'?'pl-PL':'en-GB'; return new Date(d).toLocaleDateString(l); }
+            function showMessage(k, t='success', r={}) { const mb=document.getElementById('message-box'); mb.textContent=i18n(k,r); mb.className=`p-4 text-sm rounded-lg ${t==='success'?'bg-teal-100 text-teal-900':'bg-red-100 text-red-900'}`; mb.classList.remove('hidden'); setTimeout(()=>mb.classList.add('hidden'),3000); }
+            function showModal(id) { const el=document.getElementById(id); el.classList.remove('hidden'); setTimeout(()=>{el.classList.remove('opacity-0');el.querySelector('.modal-content').classList.remove('scale-95','opacity-0');},10); }
+            function hideModal(id) { const el=document.getElementById(id); el.classList.add('opacity-0'); el.querySelector('.modal-content').classList.add('scale-95', 'opacity-0'); setTimeout(()=>el.classList.add('hidden'),300); }
+
+            // --- LOGIKA STARTOWA ---
+            function initAuthListener() {
+                if(unsubscribeAuth) unsubscribeAuth();
                 unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
                     if (user) { currentUser = user; await loadAllUsers(); startApp(); } else { currentUser = null; stopApp(); }
                 });
-            };
+            }
 
-            const createPersonalBudget = async (userId, userName, nameOverride) => {
-                const budgetName = nameOverride || `${i18n('personalBudget')} - ${userName}`;
-                const budgetRef = await db.collection('budgets').add({ name: budgetName, members: [userId], owner: userId });
-                const catsToUse = currentLang === 'pl' ? defaultCategoriesPL : defaultCategoriesEN;
-                const batch = db.batch();
-                const categoriesRef = budgetRef.collection('categories');
-                catsToUse.forEach(cat => batch.set(categoriesRef.doc(), cat));
-                await batch.commit();
-                return budgetRef.id;
-            };
+            function startApp() { document.getElementById('auth-container').classList.add('hidden'); document.getElementById('app-container').classList.remove('hidden'); document.getElementById('fab-add-transaction').classList.remove('hidden'); attachUserBudgetsListener(); populateDateControls(); }
+            function stopApp() { document.getElementById('auth-container').classList.remove('hidden'); document.getElementById('app-container').classList.add('hidden'); document.getElementById('fab-add-transaction').classList.add('hidden'); if(unsubscribeBudgetsList) unsubscribeBudgetsList(); if(unsubscribeActiveBudget) unsubscribeActiveBudget(); currentBudgetId=null; }
 
-            const startApp = () => { authContainer.classList.add('hidden'); appContainer.classList.remove('hidden'); fab.classList.remove('hidden'); attachUserBudgetsListener(); populateDateControls(); };
-            const stopApp = () => { authContainer.classList.remove('hidden'); appContainer.classList.add('hidden'); fab.classList.add('hidden'); unsubscribeBudgetsList(); unsubscribeActiveBudget(); localTransactions = []; localCategories = []; localMonthlyBudgets = {}; localUsers = {}; userBudgets = []; currentBudgetId = null; };
-            
-            const loadAllUsers = async () => { try { const s = await db.collection('users').get(); s.forEach(d => localUsers[d.id] = d.data().name || d.data().email); if (!localUsers[currentUser.uid]) localUsers[currentUser.uid] = currentUser.email.split('@')[0]; } catch (e) { console.error(e); } };
-            
-            const attachUserBudgetsListener = () => {
-                unsubscribeBudgetsList();
+            async function loadAllUsers() { try { const s=await db.collection('users').get(); s.forEach(d=>localUsers[d.id]=d.data().name||d.data().email); if(!localUsers[currentUser.uid]) localUsers[currentUser.uid]=currentUser.email.split('@')[0]; } catch(e){console.error(e);} }
+
+            // --- LOGIKA DANYCH ---
+            function attachUserBudgetsListener() {
+                if(unsubscribeBudgetsList) unsubscribeBudgetsList();
                 unsubscribeBudgetsList = db.collection('budgets').where('members', 'array-contains', currentUser.uid).onSnapshot(async (snapshot) => {
-                    if (snapshot.empty) { const userName = localUsers[currentUser.uid] || currentUser.email; await createPersonalBudget(currentUser.uid, userName); return; }
-                    userBudgets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    budgetSelect.innerHTML = ''; userBudgets.forEach(b => budgetSelect.add(new Option(b.name, b.id)));
-                    if (!currentBudgetId || !userBudgets.some(b => b.id === currentBudgetId)) currentBudgetId = userBudgets[0].id;
-                    budgetSelect.value = currentBudgetId; attachActiveBudgetListeners(currentBudgetId);
+                    if(snapshot.empty) { await createPersonalBudget(currentUser.uid, localUsers[currentUser.uid]||currentUser.email); return; }
+                    userBudgets = snapshot.docs.map(d => ({id:d.id, ...d.data()}));
+                    userBudgets.sort((a,b)=> (b.members.length>1)-(a.members.length>1)); // Wspólne na górze
+                    const sel = document.getElementById('budget-select'); sel.innerHTML='';
+                    userBudgets.forEach(b => sel.add(new Option(b.name, b.id)));
+                    if(!currentBudgetId || !userBudgets.some(b=>b.id===currentBudgetId)) currentBudgetId=userBudgets[0].id;
+                    sel.value=currentBudgetId; attachActiveBudgetListeners(currentBudgetId);
                 });
-            };
+            }
 
-            const attachActiveBudgetListeners = (budgetId) => {
-                unsubscribeActiveBudget();
-                const budgetRef = db.collection('budgets').doc(budgetId);
+            function attachActiveBudgetListeners(bid) {
+                if(unsubscribeActiveBudget) unsubscribeActiveBudget();
+                const ref = db.collection('budgets').doc(bid);
                 const l = [];
-                l.push(budgetRef.collection('transactions').onSnapshot(s => { localTransactions = s.docs.map(d => ({ id: d.id, ...d.data() })); localTransactions.sort((a, b) => new Date(b.date) - new Date(a.date)); updateAllUI(); }));
-                l.push(budgetRef.collection('categories').onSnapshot(s => { localCategories = s.docs.map(d => ({ id: d.id, ...d.data() })); if (localCategories.length === 0) seedDefaultCategories(budgetId); updateAllUI(); }));
-                l.push(budgetRef.collection('monthlyBudgets').onSnapshot(s => { localMonthlyBudgets = {}; s.forEach(d => localMonthlyBudgets[d.id] = d.data()); updateAllUI(); }));
-                l.push(budgetRef.onSnapshot(d => { if (!d.exists) { currentBudgetId = null; return; } localBudgetMembers = d.data().members || []; updateAllUI(); }));
+                l.push(ref.collection('transactions').onSnapshot(s=>{ localTransactions=s.docs.map(d=>({id:d.id,...d.data()})); updateAllUI(); }));
+                l.push(ref.collection('categories').onSnapshot(s=>{ localCategories=s.docs.map(d=>({id:d.id,...d.data()})); if(localCategories.length===0) seedDefaultCategories(bid); updateAllUI(); }));
+                l.push(ref.collection('monthlyBudgets').onSnapshot(s=>{ localMonthlyBudgets={}; s.forEach(d=>localMonthlyBudgets[d.id]=d.data()); updateAllUI(); }));
+                l.push(ref.onSnapshot(d=>{ if(d.exists) { localBudgetMembers=d.data().members||[]; updateAllUI(); } }));
                 unsubscribeActiveBudget = () => l.forEach(u => u());
-            };
+            }
 
-            const seedDefaultCategories = async (budgetId) => {
-                const ref = db.collection('budgets').doc(budgetId).collection('categories');
-                if ((await ref.limit(1).get()).empty) { const batch = db.batch(); const cats = currentLang === 'pl' ? defaultCategoriesPL : defaultCategoriesEN; cats.forEach(c => batch.set(ref.doc(), c)); await batch.commit(); }
-            };
+            async function createPersonalBudget(uid, name) {
+                const res = await db.collection('budgets').add({name:`${i18n('personalBudget')} - ${name}`, members:[uid], owner:uid});
+                await seedDefaultCategories(res.id); return res.id;
+            }
 
-            document.getElementById('force-seed-btn').onclick = async () => { if(confirm("Naprawić?")) { await seedDefaultCategories(currentBudgetId); alert("OK"); }};
-            document.getElementById('load-demo-data-btn').onclick = async () => {
-                if(currentUser.email !== 'mwojciechowski808@gmail.com') return alert("Brak uprawnień.");
-                if(confirm("Wgrać dane z Listopada 2025?")) {
-                    // FIND NATALIA'S ID
-                    const nataliaSnap = await db.collection('users').where('email', '==', 'pasierska.natalia@gmail').get();
-                    let nataliaId = null;
-                    if (!nataliaSnap.empty) nataliaId = nataliaSnap.docs[0].id;
-                    
-                    // Ensure Natalia is a member of this budget
-                    if (nataliaId && !localBudgetMembers.includes(nataliaId)) {
-                        await db.collection('budgets').doc(currentBudgetId).update({
-                            members: firebase.firestore.FieldValue.arrayUnion(nataliaId)
-                        });
-                    }
-
-                    const transRef = db.collection('budgets').doc(currentBudgetId).collection('transactions');
-                    const batch = db.batch();
-                    
-                    // Use detected ID for Natalia, fallback to current user if she's not found
-                    const idNacia = nataliaId || currentUser.uid;
-                    const idMichal = currentUser.uid;
-
-                    const demo = [ 
-                        { date: '2025-11-01', description: 'Wypłata Mich', amount: 8600, userId: idMichal }, 
-                        { date: '2025-11-01', description: 'Wypłata Nacia', amount: 7000, userId: idNacia }, 
-                        { date: '2025-11-01', description: 'Czynsz', amount: 703, userId: idMichal }, 
-                        { date: '2025-11-03', description: 'Prąd', amount: 190, userId: idMichal }, 
-                        { date: '2025-11-05', description: 'Zakupy lidl', amount: 85, userId: idMichal }, 
-                        { date: '2025-11-06', description: 'Bilet Rufus', amount: 350, userId: idMichal },
-                        { date: '2025-11-07', description: 'Rata telefon', amount: 130, userId: idMichal },
-                        { date: '2025-11-07', description: 'Subskrypcje Youtube + Canal + HBO', amount: 85, userId: idMichal },
-                        { date: '2025-11-11', description: 'Paliwo', amount: 220, userId: idMichal },
-                        { date: '2025-11-12', description: 'Paznokcie', amount: 265, userId: idNacia }
-                    ];
-                    
-                    demo.forEach(dt => {
-                         let target = ''; 
-                         if(dt.description.includes('Wypłata')) target='Wypłata'; 
-                         else if(dt.description.includes('Czynsz')) target='Czynsz/Kredyt'; 
-                         else if(dt.description.includes('Prąd')) target='Media'; 
-                         else if(dt.description.includes('Subskrypcje')) target='Media'; 
-                         else if(dt.description.includes('Zakupy')) target='Zakupy spożywcze'; 
-                         else if(dt.description.includes('Bilet')) target='Rozrywka';
-                         else if(dt.description.includes('Paznokcie')) target='Wydatki'; // Fallback or create new category? Let's map to 'Wydatki' generic or 'Rozrywka'
-                         else if(dt.description.includes('Rata')) target='Telefon';
-                         else if(dt.description.includes('Paliwo')) target='Paliwo';
-                         
-                         // Special handling for 'Paznokcie' if no exact match
-                         let cat = localCategories.find(c => c.name === target);
-                         if (!cat && target === 'Wydatki') cat = localCategories.find(c => c.name === 'Zakupy'); // Close enough
-
-                         if(cat) {
-                             const newRef = transRef.doc();
-                             batch.set(newRef, { 
-                                 date: dt.date, 
-                                 description: dt.description, 
-                                 amount: dt.amount, 
-                                 categoryId: cat.id, 
-                                 userId: dt.userId, 
-                                 createdAt: firebase.firestore.FieldValue.serverTimestamp() 
-                             });
-                         }
-                    });
-                    await batch.commit(); alert("Wgrano dane i dodano Natalię!");
+            async function seedDefaultCategories(bid) {
+                const ref = db.collection('budgets').doc(bid).collection('categories');
+                if ((await ref.limit(1).get()).empty) { 
+                    const batch = db.batch(); 
+                    const cats = currentLang==='pl'?[{name:'Wypłata',type:'Income',budgeted:4500},{name:'Czynsz',type:'Bill',budgeted:1800},{name:'Jedzenie',type:'Expense',budgeted:600}]:[{name:'Paycheck',type:'Income',budgeted:4500},{name:'Rent',type:'Bill',budgeted:1800},{name:'Food',type:'Expense',budgeted:600}]; 
+                    cats.forEach(c => batch.set(ref.doc(), c)); await batch.commit(); 
                 }
-            };
+            }
 
-            const getBudgetedAmount = (catId) => localMonthlyBudgets[currentMonthKey]?.[catId] || 0;
-
-            const calculateAll = () => {
-                const currentMonthTransactions = localTransactions.filter(t => {
-                    const tDate = new Date(t.date);
-                    const [month, year] = currentMonthKey.split('-').map(Number);
-                    return tDate.getMonth() === month && tDate.getFullYear() === year;
+            // --- RENDEROWANIE I OBLICZENIA ---
+            function calculateAll() {
+                const mVal = document.getElementById('month-select').value, yVal = document.getElementById('year-select').value;
+                currentMonthKey = `${mVal}-${yVal}`;
+                const mTrans = localTransactions.filter(t => { const d=new Date(t.date); return d.getMonth()==mVal && d.getFullYear()==yVal; });
+                const fTrans = mTrans.filter(t => !currentFilterUserId || t.userId===currentFilterUserId);
+                
+                let totalInc=0, totalExp=0;
+                const cats = localCategories.map(c => {
+                    const bud = localMonthlyBudgets[currentMonthKey]?.[c.id] || 0;
+                    const act = fTrans.filter(t=>t.categoryId===c.id).reduce((a,b)=>a+b.amount,0);
+                    const users = {}; 
+                    new Set([...localBudgetMembers, ...mTrans.map(t=>t.userId)]).forEach(u => {
+                        users[u] = mTrans.filter(t=>t.categoryId===c.id && t.userId===u).reduce((a,b)=>a+b.amount,0);
+                    });
+                    return { ...c, actual:act, budgeted:bud, remaining:bud-act, users };
                 });
 
-                const filteredTransactions = currentMonthTransactions.filter(t => !currentFilterUserId || t.userId === currentFilterUserId);
-                
-                const calculatedCategories = localCategories.map(cat => {
-                    const budgeted = getBudgetedAmount(cat.id);
-                    const catTransactions = filteredTransactions.filter(t => t.categoryId === cat.id);
-                    const actual = catTransactions.reduce((sum, t) => sum + t.amount, 0);
-                    const actualByUser = {};
-                    for (const userId in localUsers) {
-                        actualByUser[userId] = currentMonthTransactions.filter(t => t.categoryId === cat.id && t.userId === userId).reduce((sum, t) => sum + t.amount, 0);
-                    }
-                    return { ...cat, actual, remaining: budgeted - actual, budgeted, actualByUser };
+                cats.forEach(c => {
+                     const val = (c.type==='Income') ? c.actual : 0;
+                     const cost = (c.type!=='Income') ? c.actual : 0;
+                     totalInc += val; totalExp += cost;
                 });
 
-                const sumByType = (type, prop) => calculatedCategories.filter(c => c.type === type).reduce((sum, c) => sum + c[prop], 0);
-                const totalIncomeActual = sumByType('Income', 'actual');
-                const totalExpensesBudgeted = sumByType('Expense', 'budgeted') + sumByType('Bill', 'budgeted') + sumByType('Debt', 'budgeted') + sumByType('Savings', 'budgeted');
-                const totalExpensesActual = sumByType('Expense', 'actual') + sumByType('Bill', 'actual') + sumByType('Debt', 'actual') + sumByType('Savings', 'actual');
+                return { totalInc, totalExp, cats, fTrans };
+            }
+
+            function updateAllUI() {
+                if(!currentUser || !currentBudgetId) return;
+                const data = calculateAll();
                 
-                // UPDATED LOGIC FOR CARDS (AS REQUESTED)
-                // Card 1: Left to Spend = Real Income - Real Expenses
-                const amountLeftToSpend = totalIncomeActual - totalExpensesActual; 
-
-                return { calculatedCategories, summaries: { totalIncomeActual, totalExpensesBudgeted, totalExpensesActual, amountLeftToSpend, totalIncomeBudgeted: sumByType('Income', 'budgeted') }, filteredTransactions };
-            };
-            
-            const renderSummaryCards = (s) => {
-                document.getElementById('summary-left-to-spend').textContent = formatCurrency(s.amountLeftToSpend);
-                document.getElementById('summary-spent-so-far').textContent = formatCurrency(s.totalExpensesActual);
-                document.getElementById('summary-total-income').textContent = formatCurrency(s.totalIncomeActual); // Used to be budget, now Income
-
-                document.getElementById('summary-income-actual').textContent = formatCurrency(s.totalIncomeActual);
-                document.getElementById('summary-income-budgeted').textContent = formatCurrency(s.totalIncomeBudgeted);
+                // Karty
+                document.getElementById('summary-left-to-spend').textContent = formatCurrency(data.totalInc - data.totalExp);
+                document.getElementById('summary-spent-so-far').textContent = formatCurrency(data.totalExp);
+                document.getElementById('summary-total-income').textContent = formatCurrency(data.totalInc);
                 
-                document.getElementById('summary-expenses-actual').textContent = formatCurrency(s.totalExpensesActual);
-                document.getElementById('summary-expenses-budgeted').textContent = formatCurrency(s.totalExpensesBudgeted);
-            };
+                const incomeCats = data.cats.filter(c=>c.type==='Income');
+                document.getElementById('summary-income-actual').textContent = formatCurrency(incomeCats.reduce((a,b)=>a+b.actual,0));
+                document.getElementById('summary-income-budgeted').textContent = formatCurrency(incomeCats.reduce((a,b)=>a+b.budgeted,0));
 
-            const createCategoryTableHTML = (cats, title) => {
-                if (cats.length === 0) return '';
-                return `<div class="space-y-2"><h3 class="text-base font-semibold text-white tracking-wider uppercase">${title}</h3><div class="divide-y divide-gray-700">` +
-                cats.map(cat => {
-                    const percent = (cat.budgeted > 0) ? Math.max(0, Math.min(100, (cat.actual / cat.budgeted) * 100)) : 0;
-                    let barColor = 'bg-brand-teal';
-                    if (cat.type !== 'Income') barColor = percent > 90 ? 'bg-red-500' : (percent > 75 ? 'bg-yellow-500' : 'bg-brand-purple');
-                    let userBreakdownHTML = '';
-                    if (cat.type !== 'Income') {
-                        const userSpans = localBudgetMembers.map(uid => ({ uid, amount: cat.actualByUser[uid] || 0 })).filter(u => u.amount > 0).map(u => `<span>${localUsers[u.uid] || i18n('unknownUser')}: ${formatCurrency(u.amount)}</span>`).join('');
-                        if (userSpans) userBreakdownHTML = `<div class="flex justify-end text-xs text-gray-500 space-x-3 pt-1">${userSpans}</div>`;
-                    }
-                    return `<div class="py-2"><div class="flex justify-between text-sm mb-1"><span class="text-gray-200">${cat.name}</span><span class="text-gray-400">${formatCurrency(cat.actual)} / <span class="budget-value" data-id="${cat.id}" title="${i18n('clickToEditBudget')}">${formatCurrency(cat.budgeted)}</span></span></div><div class="w-full progress-bar rounded-full h-2"><div class="${barColor} progress h-2 rounded-full" style="width: ${percent}%"></div></div>${userBreakdownHTML}</div>`;
-                }).join('') + `</div></div>`;
-            };
-            
-            const renderCategoryTables = (cats) => {
-                const types = ['Income', 'Expense', 'Bill', 'Debt', 'Savings'];
-                const keys = ['catGroupIncome', 'catGroupExpense', 'catGroupBill', 'catGroupDebt', 'catGroupSavings'];
-                containerIds.forEach((id, i) => document.getElementById(id).innerHTML = createCategoryTableHTML(cats.filter(c => c.type === types[i]), i18n(keys[i])));
-            };
+                const expCats = data.cats.filter(c=>c.type!=='Income');
+                document.getElementById('summary-expenses-actual').textContent = formatCurrency(expCats.reduce((a,b)=>a+b.actual,0));
+                document.getElementById('summary-expenses-budgeted').textContent = formatCurrency(expCats.reduce((a,b)=>a+b.budgeted,0));
 
-            const renderTransactionList = (trans) => {
-                const container = document.getElementById('transaction-list-container');
-                const noTrans = document.getElementById('no-transactions');
-                Array.from(container.children).forEach(c => c.id !== 'no-transactions' && container.removeChild(c));
-                if (trans.length === 0) { noTrans.classList.remove('hidden'); return; }
-                noTrans.classList.add('hidden');
-                trans.forEach(t => {
-                    const cat = localCategories.find(c => c.id === t.categoryId);
-                    const sign = (cat && cat.type === 'Income') ? '+' : '-';
-                    const color = (cat && cat.type === 'Income') ? 'text-brand-teal' : 'text-gray-200';
-                    const html = `<div class="flex items-center justify-between py-3 border-b border-gray-700/50"><div class="flex-grow"><p class="font-medium text-white">${t.description}</p><p class="text-sm text-gray-400">${cat ? cat.name : i18n('deletedCategory')} &bull; ${localUsers[t.userId] || i18n('unknownUser')} &bull; ${formatDate(t.date)}</p></div><span class="font-medium text-lg ${color} ml-4">${sign}${formatCurrency(t.amount)}</span><button data-id="${t.id}" class="delete-trans-btn text-red-500 hover:text-red-300 ml-2" title="${i18n('deleteTransactionTooltip')}">&times;</button></div>`;
-                    container.insertAdjacentHTML('beforeend', html);
+                // Tabele
+                const types = ['Income','Expense','Bill','Debt','Savings'];
+                const tKeys = ['catGroupIncome','catGroupExpense','catGroupBill','catGroupDebt','catGroupSavings'];
+                containerIds.forEach((id,i) => {
+                    const fCats = data.cats.filter(c=>c.type===types[i]);
+                    if(fCats.length===0) { document.getElementById(id).innerHTML=''; return; }
+                    document.getElementById(id).innerHTML = `<div class="space-y-2"><h3 class="text-base font-semibold text-white tracking-wider uppercase">${i18n(tKeys[i])}</h3><div class="divide-y divide-gray-700">` + 
+                    fCats.map(c => {
+                        const p = c.budgeted>0 ? Math.min(100, (c.actual/c.budgeted)*100) : 0;
+                        const col = c.type==='Income'?'bg-teal-500':(p>90?'bg-red-500':'bg-purple-500');
+                        let uHtml = '';
+                        if(c.type!=='Income') {
+                            const spans = localBudgetMembers.map(u => ({id:u,v:c.users[u]||0})).filter(o=>o.v>0).map(o=>`<span>${localUsers[o.id]||'?'}: ${formatCurrency(o.v)}</span>`).join(' ');
+                            if(spans) uHtml = `<div class="flex justify-end text-xs text-gray-500 space-x-3 pt-1">${spans}</div>`;
+                        }
+                        return `<div class="py-2"><div class="flex justify-between text-sm mb-1"><span class="text-gray-200">${c.name}</span><span class="text-gray-400">${formatCurrency(c.actual)} / <span class="budget-value" data-id="${c.id}" title="${i18n('clickToEditBudget')}">${formatCurrency(c.budgeted)}</span></span></div><div class="w-full progress-bar rounded-full h-2"><div class="${col} progress h-2 rounded-full" style="width:${p}%"></div></div>${uHtml}</div>`;
+                    }).join('') + '</div></div>';
                 });
-            };
 
-            const renderCategoryManagerList = () => {
-                const container = document.getElementById('category-manager-list');
-                const keys = { 'Income': 'catTypeIncome', 'Expense': 'catTypeExpense', 'Bill': 'catTypeBill', 'Debt': 'catTypeDebt', 'Savings': 'catTypeSavings' };
-                container.innerHTML = localCategories.map(cat => `<div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg"><div><p class="font-medium text-white">${cat.name}</p><p class="text-sm text-gray-400">${i18n(keys[cat.type])} &bull; ${i18n('defaultBudget')}: ${formatCurrency(cat.budgeted)}</p></div><div class="space-x-2 flex-shrink-0 ml-4"><button data-id="${cat.id}" class="edit-cat-btn text-brand-teal hover:text-teal-400 font-medium text-sm" data-i18n-key="edit">Edytuj</button><button data-id="${cat.id}" class="delete-cat-btn text-red-500 hover:text-red-400 font-medium text-sm" data-i18n-key="delete">Usuń</button></div></div>`).join('');
-            };
-            
-            const renderBudgetManagerList = () => {
-                document.getElementById('budget-user-list').innerHTML = localBudgetMembers.map(uid => `<div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg"><p class="font-medium text-white">${localUsers[uid] || i18n('unknownUser')}</p></div>`).join('');
-            };
-
-            const populateCategorySelect = () => {
-                const sel = document.getElementById('trans-category');
-                const keys = { 'Income': 'catGroupIncome', 'Expense': 'catGroupExpense', 'Bill': 'catGroupBill', 'Debt': 'catGroupDebt', 'Savings': 'catGroupSavings' };
-                sel.innerHTML = `<option value="" disabled selected>${i18n('selectCategory')}</option>`;
-                Object.keys(keys).forEach(k => {
-                    const grp = document.createElement('optgroup'); grp.label = i18n(keys[k]);
-                    localCategories.filter(c => c.type === k).forEach(c => grp.appendChild(new Option(c.name, c.id)));
-                    sel.appendChild(grp);
+                // Lista
+                const tList = document.getElementById('transaction-list-container');
+                tList.innerHTML = data.fTrans.length ? '' : `<p class="text-gray-400">${i18n('noTransactions')}</p>`;
+                data.fTrans.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t => {
+                    const c = localCategories.find(x=>x.id===t.categoryId);
+                    const col = (c && c.type==='Income') ? 'text-teal-400' : 'text-gray-200';
+                    const sign = (c && c.type==='Income') ? '+' : '-';
+                    tList.insertAdjacentHTML('beforeend', `<div class="flex items-center justify-between py-3 border-b border-gray-700/50"><div class="flex-grow"><p class="font-medium text-white">${t.description}</p><p class="text-sm text-gray-400">${c?c.name:'?'} • ${localUsers[t.userId]||'?'} • ${formatDate(t.date)}</p></div><span class="font-medium text-lg ${col} ml-4">${sign}${formatCurrency(t.amount)}</span><button data-id="${t.id}" class="delete-trans-btn text-red-500 hover:text-red-300 ml-2">×</button></div>`);
                 });
-            };
-            
-            const populateUserFilterSelect = () => {
-                const sel = document.getElementById('filter-user-select');
-                sel.innerHTML = `<option value="">${i18n('allUsers')}</option>`;
-                localBudgetMembers.forEach(uid => sel.add(new Option(localUsers[uid] || i18n('unknownUser'), uid)));
-                sel.value = currentFilterUserId || '';
-            };
-
-            const populateDateControls = () => {
-                document.getElementById('trans-date').valueAsDate = new Date();
-                const monthSelect = document.getElementById('month-select');
-                const yearSelect = document.getElementById('year-select');
-                const months = i18n('monthNames');
-                const monthList = Array.isArray(months) ? months : Object.values(months);
-                const currentYear = new Date().getFullYear();
-                const currentMonth = new Date().getMonth();
-                if(currentMonthKey === '') currentMonthKey = `${currentMonth}-${currentYear}`;
-                monthSelect.innerHTML = ''; monthList.forEach((m, i) => monthSelect.add(new Option(m, i)));
-                yearSelect.innerHTML = ''; [currentYear-2, currentYear-1, currentYear, currentYear+1, currentYear+2].forEach(y => yearSelect.add(new Option(y, y)));
-                const [m, y] = currentMonthKey.split('-').map(Number);
-                monthSelect.value = m; yearSelect.value = y;
-            };
-            
-            const populateCategoryTypeSelect = () => {
-                const sel = document.getElementById('cat-form-type');
-                const keys = { 'Income': 'catTypeIncome', 'Expense': 'catTypeExpense', 'Bill': 'catTypeBill', 'Debt': 'catTypeDebt', 'Savings': 'catTypeSavings' };
-                sel.innerHTML = ''; Object.entries(keys).forEach(([k, v]) => sel.add(new Option(i18n(v), k)));
-            };
-
-            const initCharts = (data) => {
-                const { calculatedCategories } = data;
-                const dCtx = document.getElementById('spendingDoughnutChart').getContext('2d');
-                if (spendingDoughnutChart) spendingDoughnutChart.destroy();
-                const dData = calculatedCategories.filter(c => c.type !== 'Income' && c.actual > 0);
-                spendingDoughnutChart = new Chart(dCtx, { type: 'doughnut', data: { labels: dData.map(c => c.name), datasets: [{ data: dData.map(c => c.actual), backgroundColor: pieColors, borderColor: '#1f2937', borderWidth: 4 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#d1d5db', font: { family: 'Inter' } } } } } });
                 
-                const bCtx = document.getElementById('budgetBarChart').getContext('2d');
-                if (budgetBarChart) budgetBarChart.destroy();
-                const bData = calculatedCategories.filter(c => c.type === 'Expense'); 
-                budgetBarChart = new Chart(bCtx, { type: 'bar', data: { labels: bData.map(c => c.name), datasets: [{ label: i18n('chartBudgeted'), data: bData.map(c => c.budgeted), backgroundColor: '#374151', borderRadius: 4 }, { label: i18n('chartSpent'), data: bData.map(c => c.actual), backgroundColor: '#a855f7', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#374151' }, ticks: { color: '#9ca3af', font: { family: 'Inter' } } }, x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { family: 'Inter' } } } }, plugins: { legend: { position: 'top', labels: { color: '#d1d5db', font: { family: 'Inter' } } } } } });
-            };
+                // Filtry
+                const uSel = document.getElementById('filter-user-select');
+                const oldVal = uSel.value; uSel.innerHTML = `<option value="">${i18n('allUsers')}</option>`;
+                localBudgetMembers.forEach(uid => uSel.add(new Option(localUsers[uid]||'?', uid)));
+                uSel.value = oldVal;
 
-            document.getElementById('create-budget-form').onsubmit = async (e) => { e.preventDefault(); const name = document.getElementById('new-budget-name').value; if(name) { await createPersonalBudget(currentUser.uid, currentUser.email.split('@')[0], name); showMessage('budgetCreated', 'success'); hideModal('budget-manager-modal'); } };
-            document.getElementById('delete-budget-btn').onclick = async () => { if(confirm(i18n('confirmDeleteBudget'))) { await db.collection('budgets').doc(currentBudgetId).delete(); hideModal('budget-manager-modal'); } };
-            document.getElementById('manage-budget-btn').onclick = () => { const b = userBudgets.find(bud => bud.id === currentBudgetId); if(b) document.getElementById('budget-form-name').value = b.name; renderBudgetManagerList(); const d = document.getElementById('demo-data-section'); d.classList.toggle('hidden', currentUser.email !== 'mwojciechowski808@gmail.com'); showModal('budget-manager-modal'); };
-            document.getElementById('close-budget-modal').onclick = () => hideModal('budget-manager-modal');
-            document.getElementById('budget-name-form').onsubmit = async (e) => { e.preventDefault(); await db.collection('budgets').doc(currentBudgetId).update({ name: document.getElementById('budget-form-name').value }); showMessage('budgetNameUpdated'); };
-            document.getElementById('invite-user-form').onsubmit = async (e) => {
+                // Wykresy
+                const pieCtx = document.getElementById('spendingDoughnutChart').getContext('2d');
+                if(spendingDoughnutChart) spendingDoughnutChart.destroy();
+                const pieD = data.cats.filter(c=>c.type!=='Income' && c.actual>0);
+                spendingDoughnutChart = new Chart(pieCtx, {type:'doughnut',data:{labels:pieD.map(c=>c.name),datasets:[{data:pieD.map(c=>c.actual),backgroundColor:['#14b8a6','#ec4899','#a855f7','#f59e0b','#3b82f6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{position:'bottom',labels:{color:'#d1d5db'}}}}});
+
+                const barCtx = document.getElementById('budgetBarChart').getContext('2d');
+                if(budgetBarChart) budgetBarChart.destroy();
+                const barD = data.cats.filter(c=>c.type==='Expense');
+                budgetBarChart = new Chart(barCtx, {type:'bar',data:{labels:barD.map(c=>c.name),datasets:[{label:i18n('chartBudgeted'),data:barD.map(c=>c.budgeted),backgroundColor:'#374151',borderRadius:4},{label:i18n('chartSpent'),data:barD.map(c=>c.actual),backgroundColor:'#a855f7',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,grid:{color:'#374151'}},x:{grid:{display:false}}},plugins:{legend:{labels:{color:'#d1d5db'}}}}});
+            }
+
+            function populateDateControls() {
+                const mSel = document.getElementById('month-select'), ySel = document.getElementById('year-select');
+                const m = i18n('monthNames'), y = new Date().getFullYear();
+                mSel.innerHTML=''; (Array.isArray(m)?m:Object.values(m)).forEach((n,i)=>mSel.add(new Option(n,i)));
+                ySel.innerHTML=''; [y-1,y,y+1].forEach(n=>ySel.add(new Option(n,n)));
+                if(!currentMonthKey) currentMonthKey = `${new Date().getMonth()}-${y}`;
+                const [cm, cy] = currentMonthKey.split('-'); mSel.value=cm; ySel.value=cy;
+            }
+
+            // --- EVENT LISTENERS ---
+            document.getElementById('login-form').onsubmit = async (e) => {
                 e.preventDefault();
-                const email = document.getElementById('invite-email').value;
-                const snap = await db.collection('users').where('email','==',email).get();
-                if(snap.empty) return showMessage('inviteErrorUserNotFound', 'error', {email});
-                const uid = snap.docs[0].id;
-                if(localBudgetMembers.includes(uid)) return showMessage('inviteErrorAlreadyMember', 'error', {email});
-                await db.collection('budgets').doc(currentBudgetId).update({ members: firebase.firestore.FieldValue.arrayUnion(uid) });
-                showMessage('inviteSuccess', 'success', {email});
+                try { await auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-password').value); } 
+                catch(err){ document.getElementById('auth-error').textContent=i18n('authErrorLogin'); document.getElementById('auth-error').classList.remove('hidden'); }
             };
+            document.getElementById('logout-btn').onclick = () => auth.signOut();
+            
+            document.getElementById('month-select').onchange = function() { currentMonthKey=`${this.value}-${document.getElementById('year-select').value}`; updateAllUI(); };
+            document.getElementById('year-select').onchange = function() { currentMonthKey=`${document.getElementById('month-select').value}-${this.value}`; updateAllUI(); };
+            document.getElementById('filter-user-select').onchange = function() { currentFilterUserId=this.value||null; updateAllUI(); };
+            document.getElementById('budget-select').onchange = function() { currentBudgetId=this.value; attachActiveBudgetListeners(currentBudgetId); };
 
+            document.getElementById('fab-add-transaction').onclick = () => { 
+                const sel = document.getElementById('trans-category'); sel.innerHTML='';
+                localCategories.forEach(c => sel.add(new Option(c.name, c.id)));
+                showModal('transaction-modal'); 
+            };
+            document.getElementById('close-transaction-modal').onclick = () => hideModal('transaction-modal');
+            document.getElementById('transaction-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                const cat = localCategories.find(c=>c.id===fd.get('trans-category'));
+                await db.collection('budgets').doc(currentBudgetId).collection('transactions').add({
+                    date: fd.get('trans-date'), description: fd.get('trans-description'), amount: parseFloat(fd.get('trans-amount')), categoryId: cat.id, userId: currentUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                hideModal('transaction-modal');
+            };
+            document.getElementById('transaction-list-container').onclick = async (e) => { if(e.target.classList.contains('delete-trans-btn') && confirm(i18n('confirmDelete'))) { await db.collection('budgets').doc(currentBudgetId).collection('transactions').doc(e.target.dataset.id).delete(); }};
+
+            // Budget Manager Logic
+            document.getElementById('manage-budget-btn').onclick = () => {
+                document.getElementById('budget-user-list').innerHTML = localBudgetMembers.map(u=>`<div class="p-2 bg-gray-700 rounded text-white">${localUsers[u]||u}</div>`).join('');
+                const dBtn = document.getElementById('load-demo-data-btn');
+                if(currentUser.email === 'mwojciechowski808@gmail.com') {
+                     dBtn.parentElement.classList.remove('hidden');
+                     dBtn.onclick = async () => {
+                        if(!confirm("Wgrać?")) return;
+                        // AUTO-ADD NATALIA
+                        const nataliaSnap = await db.collection('users').where('email','==','pasierska.natalia@gmail.com').get();
+                        const nataliaId = !nataliaSnap.empty ? nataliaSnap.docs[0].id : null;
+                        if(nataliaId && !localBudgetMembers.includes(nataliaId)) await db.collection('budgets').doc(currentBudgetId).update({members:firebase.firestore.FieldValue.arrayUnion(nataliaId)});
+                        
+                        const batch = db.batch(); const tr = db.collection('budgets').doc(currentBudgetId).collection('transactions');
+                        const demo = [
+                            {d:'Wypłata Mich',a:8600,u:currentUser.uid},{d:'Wypłata Nacia',a:7000,u:nataliaId||currentUser.uid},
+                            {d:'Czynsz',a:703,u:currentUser.uid},{d:'Media',a:190,u:currentUser.uid},
+                            {d:'Paliwo',a:220,u:currentUser.uid},{d:'Kolacja',a:150,u:nataliaId||currentUser.uid}
+                        ];
+                        demo.forEach(i => {
+                            const cat = localCategories.find(c=>c.name.includes(i.d.split(' ')[0])) || localCategories[0];
+                            batch.set(tr.doc(), {date:'2025-11-01', description:i.d, amount:i.a, categoryId:cat.id, userId:i.u, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+                        });
+                        await batch.commit();
+                     };
+                } else { dBtn.parentElement.classList.add('hidden'); }
+                showModal('budget-manager-modal');
+            };
+            document.getElementById('close-budget-modal').onclick = () => hideModal('budget-manager-modal');
+            
+            document.getElementById('manage-categories-btn').onclick = () => {
+                document.getElementById('category-manager-list').innerHTML = localCategories.map(c => `<div class="flex justify-between p-2 bg-gray-700 rounded mb-2 text-white"><span>${c.name} (${formatCurrency(c.budgeted)})</span><button class="text-red-400" onclick="deleteCat('${c.id}')">Usuń</button></div>`).join('');
+                showModal('category-manager-modal');
+            };
+            document.getElementById('close-category-modal').onclick = () => hideModal('category-manager-modal');
+            
+            window.deleteCat = async (id) => { if(confirm("Usuń?")) await db.collection('budgets').doc(currentBudgetId).collection('categories').doc(id).delete(); };
+
+            document.getElementById('category-form').onsubmit = async (e) => {
+                e.preventDefault();
+                await db.collection('budgets').doc(currentBudgetId).collection('categories').add({
+                    name: document.getElementById('cat-form-name').value,
+                    budgeted: parseFloat(document.getElementById('cat-form-budgeted').value),
+                    type: document.getElementById('cat-form-type').value
+                });
+            };
+            const ct = document.getElementById('cat-form-type');
+            ['Income','Expense','Bill','Debt','Savings'].forEach(t=>ct.add(new Option(t,t)));
+            
+            containerIds.forEach(id => document.getElementById(id).onclick = async (e) => {
+                if(e.target.classList.contains('budget-value')) {
+                    const cid = e.target.dataset.id;
+                    const val = prompt("Nowy budżet:", localMonthlyBudgets[currentMonthKey]?.[cid]||0);
+                    if(val!==null) await db.collection('budgets').doc(currentBudgetId).collection('monthlyBudgets').doc(currentMonthKey).set({[cid]:parseFloat(val)},{merge:true});
+                }
+            });
+            
             const setLang = (lang) => { currentLang = lang; document.documentElement.lang = lang; updateTexts(); };
             const setCurr = (curr) => { currentCurrency = curr; updateTexts(); };
             const updateTexts = () => {
@@ -764,134 +457,8 @@
             };
             document.getElementById('auth-lang-pl').onclick = () => setLang('pl'); document.getElementById('auth-lang-en').onclick = () => setLang('en'); document.getElementById('auth-curr-pln').onclick = () => setCurr('PLN'); document.getElementById('auth-curr-eur').onclick = () => setCurr('EUR');
             document.getElementById('lang-pl').onclick = () => setLang('pl'); document.getElementById('lang-en').onclick = () => setLang('en'); document.getElementById('curr-pln').onclick = () => setCurr('PLN'); document.getElementById('curr-eur').onclick = () => setCurr('EUR');
-            
-            document.getElementById('fab-add-transaction').onclick = () => { document.getElementById('transaction-form').reset(); document.getElementById('trans-date').valueAsDate = new Date(); populateCategorySelect(); showModal('transaction-modal'); };
-            document.getElementById('close-transaction-modal').onclick = () => hideModal('transaction-modal');
-            document.getElementById('transaction-form').onsubmit = async (e) => {
-                e.preventDefault();
-                const fd = new FormData(e.target);
-                const cat = localCategories.find(c => c.id === fd.get('trans-category'));
-                if(!cat) return showMessage('invalidCategory', 'error');
-                await db.collection('budgets').doc(currentBudgetId).collection('transactions').add({ date: fd.get('trans-date'), description: fd.get('trans-description'), categoryId: cat.id, amount: parseFloat(fd.get('trans-amount')), userId: currentUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                showMessage('transactionAdded'); hideModal('transaction-modal');
-            };
-            document.getElementById('transaction-list-container').onclick = async (e) => { if(e.target.classList.contains('delete-trans-btn') && confirm(i18n('confirmDelete'))) { await db.collection('budgets').doc(currentBudgetId).collection('transactions').doc(e.target.dataset.id).delete(); showMessage('transactionDeleted'); }};
-            
-            document.getElementById('filter-user-select').onchange = (e) => { currentFilterUserId = e.target.value || null; updateAllUI(); };
-            const handleDateChange = (e) => {
-                currentMonthKey = `${document.getElementById('month-select').value}-${document.getElementById('year-select').value}`;
-                // FIX: Call updateAllUI IMMEDIATELY to clear old month data from view
-                updateAllUI();
-                const ref = db.collection('budgets').doc(currentBudgetId).collection('monthlyBudgets').doc(currentMonthKey);
-                ref.get().then(d => { if(!d.exists) { const n={}; localCategories.forEach(c=>n[c.id]=c.budgeted||0); ref.set(n); } });
-            };
-            document.getElementById('month-select').onchange = handleDateChange; document.getElementById('year-select').onchange = handleDateChange;
+            document.getElementById('delete-budget-btn').onclick = async () => { if(confirm("Usunąć?")) { await db.collection('budgets').doc(currentBudgetId).delete(); hideModal('budget-manager-modal'); } };
 
-            const updateAllUI = () => {
-                if(!currentUser || !currentBudgetId) return;
-                const data = calculateAll();
-                renderSummaryCards(data.summaries);
-                renderCategoryTables(data.calculatedCategories);
-                renderTransactionList(data.filteredTransactions);
-                const filterSel = document.getElementById('filter-user-select');
-                const currentVal = filterSel.value;
-                filterSel.innerHTML = `<option value="">${i18n('allUsers')}</option>`;
-                localBudgetMembers.forEach(uid => filterSel.add(new Option(localUsers[uid] || i18n('unknownUser'), uid)));
-                filterSel.value = currentVal;
-                initCharts(data);
-            };
-
-            const handleBudgetEdit = async (e) => {
-                if (e.target.classList.contains('budget-value')) {
-                    const catId = e.target.dataset.id;
-                    const category = localCategories.find(c => c.id === catId);
-                    if (category) {
-                        const newBudgetValue = prompt(`${i18n('budgetFor')} "${category.name}":`, getBudgetedAmount(catId));
-                        if (newBudgetValue === null) return;
-                        const newAmount = parseFloat(newBudgetValue.replace(',', '.'));
-                        if (!isNaN(newAmount) && newAmount >= 0) {
-                            try {
-                                await db.collection('budgets').doc(currentBudgetId).collection('monthlyBudgets').doc(currentMonthKey).set({ [catId]: newAmount }, { merge: true });
-                                showMessage('budgetUpdated', 'success');
-                            } catch (err) { console.error(err); }
-                        } else { showMessage('invalidAmount', 'error'); }
-                    }
-                }
-            };
-            containerIds.forEach(id => document.getElementById(id).addEventListener('click', handleBudgetEdit));
-            
-            // Additional Category Manager Handlers
-            let editingCatId = null;
-            const resetCategoryForm = () => { editingCatId = null; document.getElementById('category-form').reset(); document.getElementById('cat-form-submit').textContent = i18n('addCategoryBtn'); document.getElementById('cat-form-cancel').classList.add('hidden'); };
-            document.getElementById('manage-categories-btn').onclick = () => { renderCategoryManagerList(); resetCategoryForm(); populateCategoryTypeSelect(); showModal('category-manager-modal'); };
-            document.getElementById('close-category-modal').onclick = () => hideModal('category-manager-modal');
-            document.getElementById('cat-form-cancel').onclick = resetCategoryForm;
-            document.getElementById('category-form').onsubmit = async (e) => {
-                e.preventDefault();
-                const name = document.getElementById('cat-form-name').value;
-                const budgeted = parseFloat(document.getElementById('cat-form-budgeted').value);
-                const type = document.getElementById('cat-form-type').value;
-                if(!name || isNaN(budgeted)) return showMessage('fillAllFields', 'error');
-                const ref = db.collection('budgets').doc(currentBudgetId).collection('categories');
-                if(editingCatId) { await ref.doc(editingCatId).update({name, budgeted, type}); showMessage('categoryUpdated'); }
-                else { await ref.add({name, budgeted, type}); showMessage('categoryAdded'); }
-                resetCategoryForm();
-            };
-            document.getElementById('category-manager-list').onclick = async (e) => {
-                const id = e.target.dataset.id;
-                if(e.target.classList.contains('edit-cat-btn')) {
-                    const c = localCategories.find(x => x.id === id);
-                    if(c) { editingCatId = id; document.getElementById('cat-form-name').value = c.name; document.getElementById('cat-form-budgeted').value = c.budgeted; document.getElementById('cat-form-type').value = c.type; document.getElementById('cat-form-submit').textContent = i18n('saveChangesBtn'); document.getElementById('cat-form-cancel').classList.remove('hidden'); }
-                } else if(e.target.classList.contains('delete-cat-btn')) {
-                    const q = await db.collection('budgets').doc(currentBudgetId).collection('transactions').where('categoryId', '==', id).limit(1).get();
-                    if(!q.empty) return showMessage('categoryDeleteError', 'error');
-                    if(confirm(i18n('confirmDelete'))) { await db.collection('budgets').doc(currentBudgetId).collection('categories').doc(id).delete(); showMessage('categoryDeleted'); }
-                }
-            };
-            
-            // Yearly Summary Handlers
-            document.getElementById('yearly-summary-btn').onclick = () => {
-                const year = document.getElementById('year-select').value;
-                document.getElementById('yearly-summary-title').textContent = `${i18n('yearlySummaryTitle')}: ${year}`;
-                const months = i18n('monthNames');
-                let html = '', tInc = 0, tExp = 0, tSav = 0;
-                for(let i=0; i<12; i++) {
-                    const mKey = `${i}-${year}`;
-                    const mTrans = localTransactions.filter(t => { const d = new Date(t.date); return d.getMonth() === i && d.getFullYear() == year; });
-                    let inc=0, exp=0, sav=0;
-                    mTrans.forEach(t => { const c = localCategories.find(x => x.id === t.categoryId); if(c) { if(c.type==='Income') inc+=t.amount; else if(c.type==='Savings') sav+=t.amount; else exp+=t.amount; } });
-                    tInc+=inc; tExp+=exp; tSav+=sav;
-                    html += `<tr class="hover:bg-gray-700"><td class="p-3 text-sm text-white">${months[i]}</td><td class="p-3 text-sm text-brand-teal">${formatCurrency(inc)}</td><td class="p-3 text-sm text-brand-pink">${formatCurrency(exp)}</td><td class="p-3 text-sm text-brand-purple">${formatCurrency(sav)}</td></tr>`;
-                }
-                document.getElementById('yearly-summary-table-body').innerHTML = html;
-                document.getElementById('yearly-summary-table-footer').innerHTML = `<td class="p-3 text-sm text-white">${i18n('total')}</td><td class="p-3 text-sm text-brand-teal">${formatCurrency(tInc)}</td><td class="p-3 text-sm text-brand-pink">${formatCurrency(tExp)}</td><td class="p-3 text-sm text-brand-purple">${formatCurrency(tSav)}</td>`;
-                showModal('yearly-summary-modal');
-            };
-            document.getElementById('close-yearly-modal').onclick = () => hideModal('yearly-summary-modal');
-            document.getElementById('export-csv-btn').onclick = () => {
-                const year = document.getElementById('year-select').value;
-                const months = i18n('monthNames');
-                // Summary
-                let csv = `Miesiąc;Przychody;Wydatki;Oszczędności\n`;
-                document.querySelectorAll('#yearly-summary-table-body tr').forEach((r, i) => { const c = r.querySelectorAll('td'); csv += `${months[i]};"${c[1].textContent}";"${c[2].textContent}";"${c[3].textContent}"\n`; });
-                const footer = document.querySelectorAll('#yearly-summary-table-footer td');
-                csv += `${i18n('total')};"${footer[1].textContent}";"${footer[2].textContent}";"${footer[3].textContent}"\n`;
-                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a"); a.href = url; a.download = `Podsumowanie_${year}.csv`; a.click();
-                
-                // Transactions
-                let tCsv = `Data;Opis;Kategoria;Typ;Kwota;Użytkownik\n`;
-                localTransactions.filter(t => new Date(t.date).getFullYear() == year).forEach(t => {
-                     const c = localCategories.find(x => x.id === t.categoryId) || {};
-                     tCsv += `${formatDate(t.date)};"${t.description.replace(/"/g, '""')}";"${c.name||''}";"${c.type||''}";"${(c.type==='Income'?'':'-')+t.amount.toFixed(2)}";"${localUsers[t.userId]||''}"\n`;
-                });
-                const tBlob = new Blob(['\uFEFF' + tCsv], { type: 'text/csv;charset=utf-8;' });
-                const tUrl = URL.createObjectURL(tBlob);
-                a.href = tUrl; a.download = `Transakcje_${year}.csv`; a.click();
-            };
-
-            // Initialize
             initAuthListener();
         });
     </script>
